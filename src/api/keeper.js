@@ -15,8 +15,16 @@ function buildSystemPrompt(scenario, character, currentLocation) {
         currentLocation.san_check?.required
           ? `\n[주의: 이 장소는 SAN 체크가 필요한 공간입니다 — ${currentLocation.san_check.reason}]`
           : ''
-      }`
+      }${currentLocation.npc?.length ? `\nNPC: ${currentLocation.npc.map(n => n.name + ' — ' + (n.interact ?? n.description)).join(' / ')}` : ''}`
     : ''
+
+  const allLocations = scenario.locations
+    .map(l => `- ${l.name} (id: ${l.id})${l.connections?.length ? ` → 연결: ${l.connections.join(', ')}` : ''}`)
+    .join('\n')
+
+  const allClues = scenario.locations
+    .flatMap(l => (l.clues ?? []).map(c => `- [${l.name}] ${c.text}${c.requires_check ? ` (${c.skill} 판정 필요)` : ''}`))
+    .join('\n') || '(없음)'
 
   return `당신은 Call of Cthulhu TRPG의 키퍼(게임 마스터)입니다.
 플레이어는 1920년대 배경에서 솔로 플레이 중입니다.
@@ -24,6 +32,19 @@ function buildSystemPrompt(scenario, character, currentLocation) {
 ## 시나리오
 제목: ${scenario.title}
 배경: ${scenario.setting}${locationInfo}
+
+## 시나리오에 존재하는 장소 (전부)
+${allLocations}
+
+## 시나리오에 존재하는 단서 (전부)
+${allClues}
+
+## 세계관 제약 (절대 준수)
+- 위 목록에 없는 장소는 존재하지 않습니다. 새로운 방, 건물, 지역을 창작하지 마십시오.
+- 위 목록에 없는 단서, 문서, NPC, 사건을 즉흥으로 만들지 마십시오.
+- 탐사자가 목록 외 장소로 가려 한다면 "갈 수 없다"는 묘사로 자연스럽게 막으십시오.
+- 선택지는 현재 장소의 connections에 있는 장소로의 이동과, 현재 장소 내 행동만 제시하십시오.
+- 탐사자가 다른 장소로 이동하는 경우 move_to에 해당 장소의 id를 반환하십시오. 이동이 없으면 null.
 
 ## 현재 탐사자 상태
 이름: ${character.name} (${character.occupation})
@@ -68,7 +89,8 @@ ${insanityStatus ? `광기 상태:\n${insanityStatus}` : '광기 없음'}
     "loss": { "success": "0", "fail": "1d3" },
     "reason": ""
   },
-  "combat_start": false
+  "combat_start": false,
+  "move_to": null
 }
 
 JSON 외 다른 텍스트를 출력하지 마십시오.`

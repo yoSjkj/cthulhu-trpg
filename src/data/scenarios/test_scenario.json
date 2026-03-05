@@ -1,30 +1,32 @@
 {
   "id": "test_scenario",
   "title": "[테스트] 폐쇄된 연구소",
-  "setting": "1920년대 매사추세츠 주, 외딴 연구소",
-  "intro": "동료의 실종 신고를 받고 아캄 외곽의 낡은 연구소를 찾았다. 건물은 3년째 폐쇄되어 있다고 했지만, 정문 자물쇠는 누군가 이미 따놓은 상태였다.",
+  "setting": "1920년대 매사추세츠 주, 아캄 외곽의 외딴 연구소",
+  "intro": "동료 연구자 R. Marsh의 실종 신고를 받고 아캄 외곽의 낡은 연구소를 찾았다. 건물은 3년째 폐쇄되어 있다고 했지만, 정문 자물쇠는 누군가 이미 따놓은 상태였다. 그를 찾거나, 무슨 일이 있었는지 단서를 확보하고 이곳을 빠져나가야 한다.",
+  "goal_hint": "연구소 안에서 무슨 일이 있었는지 단서를 모아라. 충분한 단서가 모이면 탈출할 수 있다.",
+  "turn_limit": 30,
   "locations": [
     {
       "id": "loc_entrance",
-      "name": "정문 앞",
+      "name": "1층 복도",
       "visible_from_start": true,
-      "description": "녹슨 철문이 삐걱거리며 열린다. 건물 내부는 어둡고 퀴퀴한 냄새가 난다. 복도 끝으로 두 갈래 길이 보인다. 왼쪽은 실험실, 오른쪽은 계단 아래 지하실로 이어진다.",
+      "description": "녹슨 철문이 삐걱거리며 열린다. 퀴퀴한 냄새와 함께 어둠이 밀려온다. 손전등 불빛이 복도를 훑는다. 왼쪽 문은 실험실, 정면 계단은 지하로 이어진다. 바닥에 먼지가 두텁게 쌓여 있고, 발자국 흔적이 지하 계단 쪽으로 향한다.",
       "clues": [],
       "san_check": {
         "required": false
       },
-      "connections": ["loc_laboratory", "loc_basement"],
+      "connections": ["loc_laboratory", "loc_basement_stairs"],
       "npc": []
     },
     {
       "id": "loc_laboratory",
       "name": "실험실",
       "visible_from_start": false,
-      "description": "뒤집힌 의자, 깨진 비커, 바닥에 번진 검은 얼룩. 서둘러 떠난 흔적이 역력하다. 창문 너머로 달빛이 비쳐 벽에 기묘한 그림자를 만들어낸다.",
+      "description": "뒤집힌 의자, 깨진 비커, 바닥에 번진 검은 얼룩. 서둘러 떠난 흔적이 역력하다. 실험대 위에 노트 한 권이 펼쳐진 채 놓여 있다. 창문이 깨져 있고 바깥 바람이 들어온다.",
       "clues": [
         {
           "id": "clue_notebook",
-          "text": "실험 노트가 발견됐다. 마지막 페이지에는 떨리는 글씨로 이렇게 적혀 있다. '그것은 각도가 없다. 차원이 없다. 우리가 본 것은 그것의 그림자조차 아니었다.'",
+          "text": "실험 노트 — Marsh의 필체다. 마지막 페이지: '촉매 주입 72시간 후 경계가 무너지기 시작했다. 그것은 문이다. 우리가 연 것이 아니라, 우리가 열쇠였다.' 날짜는 3년 전 오늘.",
           "requires_check": true,
           "skill": "발견",
           "difficulty": "normal",
@@ -32,25 +34,38 @@
             "required": false
           },
           "revealed": false
+        },
+        {
+          "id": "clue_photo",
+          "text": "실험대 서랍 안에 사진 한 장 — 연구진 단체사진이다. 다섯 명. 그런데 얼굴 부분만 모든 사람이 손으로 지워져 있다. 뒷면에 한 줄: '그는 이미 여기 있었다.'",
+          "requires_check": true,
+          "skill": "발견",
+          "difficulty": "hard",
+          "san_check": {
+            "required": true,
+            "loss": { "success": "0", "fail": "1d3" },
+            "reason": "사진 속 지워진 얼굴들 — 지운 것이 아니라 처음부터 없었던 것처럼 매끄럽다."
+          },
+          "revealed": false
         }
       ],
       "san_check": {
         "required": true,
-        "loss": { "success": "0", "fail": "1d3" },
-        "reason": "벽 전체를 뒤덮은 기호들 — 인간의 손으로 그린 것이 아닌 듯한 각도와 크기로."
+        "loss": { "success": "0", "fail": "1d2" },
+        "reason": "벽 전체를 가득 채운 기호들 — 분필이 아니라 손톱으로 긁어낸 흔적이다."
       },
       "connections": ["loc_entrance"],
       "npc": []
     },
     {
-      "id": "loc_basement",
-      "name": "지하실",
+      "id": "loc_basement_stairs",
+      "name": "지하 계단",
       "visible_from_start": false,
-      "description": "계단을 내려가자 습한 공기가 폐를 채운다. 천장에 매달린 전구 하나가 깜빡인다. 구석에 금속 선반이 있고, 그 위에 유리 표본 용기들이 늘어서 있다.",
+      "description": "계단을 내려갈수록 냄새가 달라진다. 화학약품 냄새가 걷히고 더 오래된 무언가가 올라온다. 흙과 녹, 그리고 설명하기 어려운 비릿함. 계단 중간에 쓰러진 손전등 하나가 있다. 배터리가 아직 살아있다.",
       "clues": [
         {
-          "id": "clue_specimen",
-          "text": "용기 안에 담긴 것을 들여다본 순간, 그것이 움직였다. 아니, 움직인 것이 아닐 수도 있다. 라벨에는 단 두 글자만 적혀 있다. 'R.L.'",
+          "id": "clue_flashlight",
+          "text": "손전등 옆에 명함 한 장 — 'Dr. R. Marsh, Miskatonic University'. 뒷면에 급히 휘갈긴 글씨: '지하에 있다. 오지 마라. 이미 늦었다.'",
           "requires_check": false,
           "skill": null,
           "difficulty": null,
@@ -63,13 +78,54 @@
       "san_check": {
         "required": false
       },
-      "connections": ["loc_entrance"],
+      "connections": ["loc_entrance", "loc_basement"],
       "npc": []
+    },
+    {
+      "id": "loc_basement",
+      "name": "지하실",
+      "visible_from_start": false,
+      "description": "지하실은 예상보다 넓다. 중앙에 원형 문양이 바닥에 새겨져 있고, 그 중심에서 공기가 미세하게 움직인다. 구석에 웅크린 형체가 있다. 움직이지 않는다. 출입구는 올라온 계단 하나뿐이다.",
+      "clues": [],
+      "san_check": {
+        "required": true,
+        "loss": { "success": "1", "fail": "1d6" },
+        "reason": "원형 문양의 중심 — 바닥이 바닥이 아닐지도 모른다는 생각이 든다. 그리고 구석의 형체."
+      },
+      "connections": ["loc_basement_stairs"],
+      "npc": [
+        {
+          "id": "npc_marsh",
+          "name": "Marsh",
+          "description": "웅크린 형체는 Marsh다. 살아있다. 그러나 눈의 초점이 없다. 말을 걸면 반응하지만, 내용이 맞지 않는다. 3년 전 일을 오늘처럼 말한다.",
+          "interact": "Marsh는 당신을 알아보지 못한다. 그는 계속 같은 말을 반복한다. '문을 열면 안 됐어. 그게 들어온 게 아니라 우리가 들어간 거야.'"
+        }
+      ]
     }
   ],
   "ending": {
-    "conditions": [],
-    "good": "[테스트 시나리오 — 엔딩 없음]",
-    "bad": "[테스트 시나리오 — 엔딩 없음]"
+    "conditions": [
+      {
+        "type": "clues_collected",
+        "required": ["clue_notebook", "clue_flashlight"],
+        "then": "escape_available",
+        "description": "핵심 단서 2개 수집 시 탈출 가능 상태로 전환"
+      },
+      {
+        "type": "location_reached",
+        "location_id": "loc_entrance",
+        "requires_state": "escape_available",
+        "result": "good_ending",
+        "description": "단서 확보 후 1층 복도(출구)로 복귀 시 탈출 성공"
+      },
+      {
+        "type": "turn_limit",
+        "max_turns": 30,
+        "result": "bad_ending",
+        "description": "30턴 초과 시 배드엔딩"
+      }
+    ],
+    "good": "당신은 연구소를 빠져나왔다. 손에는 노트와 명함이 쥐어져 있다. Marsh는 데려올 수 없었다. 그는 이미 다른 곳에 있었다. 새벽빛이 건물 외벽을 비춘다. 뒤를 돌아보지 않는다. 돌아봐야 할 것이 없다는 것을 알면서도.",
+    "bad": "시간이 흘렀다. 얼마나 지났는지 모른다. 출구가 어디인지 기억이 나지 않는다. 원형 문양 앞에 서 있다. 공기가 움직인다. 위에서 아래로. 발걸음이 저절로 중심을 향한다."
   }
 }

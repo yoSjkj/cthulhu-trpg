@@ -23,7 +23,8 @@ const normalizeSkill = (name) => SKILL_NAME_MAP[name?.toLowerCase()] ?? name
 export default function Game() {
   const {
     character, scenario, currentLocationId, revealedClues, log,
-    sessionSANLoss, addLog, revealClue, applySanLoss: storeSanLoss, gameOver,
+    sessionSANLoss, addLog, revealClue, applySanLoss: storeSanLoss, gameOver, moveLocation,
+    escapeAvailable, setEscapeAvailable,
   } = useGameStore()
   const apiKey = useSetupStore(s => s.apiKey)
 
@@ -71,6 +72,44 @@ export default function Game() {
     return true
   }
 
+  // ── 엔딩 조건 체크 ─────────────────────────────────────
+  const checkEndings = (overrideLocationId = null) => {
+    const { revealedClues: clues, turnsPlayed: turns, currentLocationId: locId, escapeAvailable: canEscape } = useGameStore.getState()
+    const locToCheck = overrideLocationId ?? locId
+    const conditions = scenario.ending?.conditions ?? []
+
+    // 턴 제한
+    const turnCond = conditions.find(c => c.type === 'turn_limit')
+    if (turnCond && turns >= turnCond.max_turns) {
+      addLog('system', scenario.ending.bad)
+      gameOver('bad_ending')
+      return true
+    }
+
+    // 단서 수집 → 탈출 가능 상태
+    let currentEscape = canEscape
+    if (!currentEscape) {
+      const cluesCond = conditions.find(c => c.type === 'clues_collected')
+      if (cluesCond?.required.every(id => clues.includes(id))) {
+        setEscapeAvailable(true)
+        currentEscape = true
+        addLog('system', '[단서 확보] 충분한 단서를 손에 쥐었다. 이제 빠져나갈 수 있다.')
+      }
+    }
+
+    // 탈출 가능 상태에서 출구 장소 도달 → 굿엔딩
+    if (currentEscape) {
+      const locCond = conditions.find(c => c.type === 'location_reached' && c.requires_state === 'escape_available')
+      if (locCond && locToCheck === locCond.location_id) {
+        addLog('system', scenario.ending.good)
+        gameOver('good_ending')
+        return true
+      }
+    }
+
+    return false
+  }
+
   // ── 키퍼 호출 (항상 최신 character를 가져옴) ──────────
   const callKeeper = async (nextMessages, context = null) => {
     setUi(UI.LOADING)
@@ -95,8 +134,20 @@ export default function Game() {
       if (!latestChar?.isAlive) { gameOver('death'); return }
       if (!latestChar?.isSane)  { gameOver('insanity'); return }
 
+      // 장소 이동 처리
+      let movedToId = null
+      if (response.move_to) {
+        const validLoc = scenario.locations.find(l => l.id === response.move_to)
+        if (validLoc) {
+          moveLocation(response.move_to)
+          movedToId = response.move_to
+          addLog('system', `[이동] ${validLoc.name}`)
+        }
+      }
+
       // 우선순위: 장소 JSON san_check → AI san_check → AI requires_check → 전투
-      if (triggerLocationSanCheck(currentLocationId)) {
+      const activeLocationId = movedToId ?? currentLocationId
+      if (triggerLocationSanCheck(activeLocationId)) {
         setChoices([])
         setUi(UI.SAN)
       } else if (response.san_check?.needed) {
@@ -164,6 +215,9 @@ export default function Game() {
         revealClue(clue.id)
         clueText = clue.text
         addLog('system', `[단서 발견] ${clue.text}`)
+        if (clue.san_check?.required) {
+          setPendingSan({ loss: clue.san_check.loss, reason: clue.san_check.reason })
+        }
       }
     }
 
@@ -173,6 +227,7 @@ export default function Game() {
     }]
     setMessages(next)
     setPendingCheck(null)
+    checkEndings()
     callKeeper(next, { lastCheckResult: { ...result, skill: pendingCheck.skill, resultLabel }, revealedClue: clueText })
   }
 
@@ -440,4 +495,24 @@ function CharacterSheet({ character, revealedClues, scenario, onClose }) {
         {(character.temporaryInsanity || character.indefiniteInsanity) && (
           <div>
             <div className="text-blood text-xs tracking-widest uppercase mb-2">광기</div>
-            {character.temporaryInsanity && <p className="text-sm text-parchment/80 mb-1">일시적: {c
+            {character.temporaryInsanity && <p className="text-sm text-parchment/80 mb-1">일시적: {character.temporaryInsanity.description}</p>}
+            {character.indefiniteInsanity && <p className="text-sm text-parchment/80">부정기: {character.indefiniteInsanity.description}</p>}
+          </div>
+        )}
+
+        {revealedClues.length > 0 && (
+          <div>
+            <div className="text-dust text-xs tracking-widest uppercase mb-2">발견한 단서</div>
+            <div className="space-y-1">
+              {scenario.locations.flatMap(l => l.clues ?? [])
+                .filter(cl => revealedClues.includes(cl.id))
+                .map(cl => (
+                  <div key={cl.id} className="text-xs text-parchment/70 border-l-2 border-border px-3 py-1">{cl.text}</div>
+                ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

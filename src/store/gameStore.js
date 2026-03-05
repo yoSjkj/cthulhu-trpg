@@ -73,6 +73,8 @@ export const useGameStore = create(
 
       endCombat: () => set({ combat: null }),
 
+      setEscapeAvailable: (val) => set({ escapeAvailable: val }),
+
       gameOver: (cause) => {
         const state = useGameStore.getState()
         const stats = {
