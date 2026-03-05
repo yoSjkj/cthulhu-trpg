@@ -77,8 +77,12 @@ export const useGameStore = create(
 
       gameOver: (cause) => {
         const state = useGameStore.getState()
+        const endingText =
+          cause === 'good_ending' ? state.scenario?.ending?.good :
+          cause === 'bad_ending'  ? state.scenario?.ending?.bad  : null
         const stats = {
           cause,
+          endingText:        endingText ?? null,
           lowestSAN:         state.lowestSAN,
           cluesFound:        state.revealedClues.length,
           cthulhuMythosSkill: state.character?.skills?.['크툴루신화'] ?? 0,

@@ -1,14 +1,18 @@
 import { useGameStore, clearSave } from '../store/gameStore'
 
 const CAUSE_TEXT = {
-  death:    { title: '탐사자가 사망했다', sub: '공허는 끝내 당신을 삼켰다.' },
-  insanity: { title: '탐사자는 광기에 빠졌다', sub: '진실을 보는 자는 온전할 수 없다.' },
+  death:       { title: '탐사자가 사망했다',       sub: '공허는 끝내 당신을 삼켰다.' },
+  insanity:    { title: '탐사자는 광기에 빠졌다',   sub: '진실을 보는 자는 온전할 수 없다.' },
+  good_ending: { title: '탈출에 성공했다',          sub: null },
+  bad_ending:  { title: '시간이 다 되었다',         sub: null },
 }
 
 export default function GameOver() {
   const gameOverStats = useGameStore(s => s.gameOverStats)
   const reset = useGameStore(s => s.reset)
-  const { title, sub } = CAUSE_TEXT[gameOverStats?.cause] ?? CAUSE_TEXT.death
+  const causeInfo = CAUSE_TEXT[gameOverStats?.cause] ?? CAUSE_TEXT.death
+  const { title } = causeInfo
+  const sub = gameOverStats?.endingText ?? causeInfo.sub
 
   const handleRestart = () => {
     clearSave()

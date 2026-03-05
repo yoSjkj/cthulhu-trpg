@@ -171,16 +171,22 @@ function appendContext(messages, contextNote) {
   return updated
 }
 
+const FALLBACK_CHOICES = ['계속한다', '주변을 살핀다', '물러난다']
+
 // ── 응답 파싱 ─────────────────────────────────────────────
 export function parseKeeperResponse(text) {
   try {
     const match = text.match(/```json\s*([\s\S]*?)```/) ?? text.match(/(\{[\s\S]*\})/)
     const jsonStr = match ? (match[1] ?? match[0]) : text
-    return JSON.parse(jsonStr.trim())
+    const parsed = JSON.parse(jsonStr.trim())
+    if (!Array.isArray(parsed.choices) || parsed.choices.length === 0) {
+      parsed.choices = FALLBACK_CHOICES
+    }
+    return parsed
   } catch {
     return {
       narrative: text || '(응답을 처리하지 못했습니다.)',
-      choices: ['계속한다', '주변을 살핀다', '물러난다'],
+      choices: FALLBACK_CHOICES,
       requires_check: { needed: false, skill: '', difficulty: 'normal', reason: '' },
       san_check: { needed: false, loss: { success: '0', fail: '0' }, reason: '' },
       combat_start: false,

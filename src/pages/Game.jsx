@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo } from 'react'
-import { useGameStore, useSetupStore } from '../store/gameStore'
+import { useGameStore, useSetupStore, clearSave } from '../store/gameStore'
 import { askKeeper } from '../api/keeper'
 import { performCheck, CHECK_LABELS } from '../engine/check'
 import { performSanCheck, applySanLoss } from '../engine/sanity'
@@ -23,8 +23,8 @@ const normalizeSkill = (name) => SKILL_NAME_MAP[name?.toLowerCase()] ?? name
 export default function Game() {
   const {
     character, scenario, currentLocationId, revealedClues, log,
-    sessionSANLoss, addLog, revealClue, applySanLoss: storeSanLoss, gameOver, moveLocation,
-    escapeAvailable, setEscapeAvailable,
+    sessionSANLoss, turnsPlayed, addLog, revealClue, applySanLoss: storeSanLoss, gameOver, moveLocation,
+    escapeAvailable, setEscapeAvailable, reset,
   } = useGameStore()
   const apiKey = useSetupStore(s => s.apiKey)
 
@@ -61,6 +61,17 @@ export default function Game() {
       setUi(UI.IDLE)
     }
   }, [])
+
+  // ── 장소 진입 시 requires_check:false 단서 자동 공개 ───
+  const autoRevealClues = (locationId) => {
+    const loc = scenario.locations.find(l => l.id === locationId)
+    const { revealedClues: current } = useGameStore.getState()
+    const autoClues = loc?.clues?.filter(cl => !cl.requires_check && !current.includes(cl.id)) ?? []
+    autoClues.forEach(cl => {
+      revealClue(cl.id)
+      addLog('system', `[발견] ${cl.text}`)
+    })
+  }
 
   // ── 장소 진입 시 JSON san_check 자동 발동 ──────────────
   const triggerLocationSanCheck = (locationId) => {
@@ -142,8 +153,13 @@ export default function Game() {
           moveLocation(response.move_to)
           movedToId = response.move_to
           addLog('system', `[이동] ${validLoc.name}`)
+          autoRevealClues(response.move_to)
+          if (checkEndings(response.move_to)) return
         }
       }
+
+      // 턴 제한 엔딩 체크 (이동 없을 때도)
+      if (!movedToId && checkEndings()) return
 
       // 우선순위: 장소 JSON san_check → AI san_check → AI requires_check → 전투
       const activeLocationId = movedToId ?? currentLocationId
@@ -175,7 +191,6 @@ export default function Game() {
   }
 
   const handleChoice = (choice) => {
-    setLastFailedSkill(null)
     addLog('action', `> ${choice}`)
     const next = [...messages, { role: 'user', content: choice }]
     setMessages(next)
@@ -288,14 +303,19 @@ export default function Game() {
       <div className="sticky top-0 z-10 bg-void border-b border-border px-4 py-3 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs text-dust">{character.name} · {character.occupation}</span>
-          <button onClick={() => setShowSheet(true)}
-            className="text-xs text-dust hover:text-parchment transition-colors border border-border px-2 py-0.5">시트</button>
+          <div className="flex gap-2">
+            <button onClick={() => { if (confirm('처음부터 시작하시겠습니까?')) { clearSave(); reset() } }}
+              className="text-xs text-dust hover:text-blood transition-colors border border-border px-2 py-0.5">처음부터</button>
+            <button onClick={() => setShowSheet(true)}
+              className="text-xs text-dust hover:text-parchment transition-colors border border-border px-2 py-0.5">시트</button>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <StatBar label="HP" value={character.HP} max={character.maxHP} pct={hpPct} />
           <StatBar label="SAN" value={character.SAN} max={character.maxSAN} pct={sanPct} warn={sanPct < 30} />
         </div>
         <div className="flex gap-4 text-xs text-dust">
+          <span>TURN <span className={`font-mono ${turnsPlayed >= (scenario.ending?.conditions?.find(c => c.type === 'turn_limit')?.max_turns ?? 999) * 0.8 ? 'text-blood' : 'text-parchment'}`}>{turnsPlayed}{scenario.ending?.conditions?.find(c => c.type === 'turn_limit')?.max_turns ? `/${scenario.ending?.conditions?.find(c => c.type === 'turn_limit')?.max_turns}` : ''}</span></span>
           <span>LUCK <span className="font-mono text-parchment">{character.LUCK}</span></span>
           <span>MP <span className="font-mono text-parchment">{character.MP}/{character.maxMP}</span></span>
           {character.indefiniteInsanity && (
@@ -444,7 +464,7 @@ const LogEntry = memo(function LogEntry({ entry }) {
     action:    'text-dust text-sm italic',
     check:     'font-mono text-xs text-blood/80 bg-surface border-l-2 border-blood/40 px-3 py-1',
     san:       'font-mono text-xs text-blood bg-surface border-l-2 border-blood px-3 py-1',
-    system:    'text-dust/70 text-xs italic border-l-2 border-border px-3 py-1',
+    system:    'text-dust text-xs italic bg-surface border border-border/60 px-3 py-2 rounded-sm',
     combat:    'font-mono text-xs text-parchment/70 bg-surface border-l-2 border-parchment/20 px-3 py-1',
   }
   return <div className={styles[entry.type] ?? styles.narrative}>{entry.text}</div>
