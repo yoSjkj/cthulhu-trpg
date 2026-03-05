@@ -1,0 +1,75 @@
+{
+  "id": "test_scenario",
+  "title": "[테스트] 폐쇄된 연구소",
+  "setting": "1920년대 매사추세츠 주, 외딴 연구소",
+  "intro": "동료의 실종 신고를 받고 아캄 외곽의 낡은 연구소를 찾았다. 건물은 3년째 폐쇄되어 있다고 했지만, 정문 자물쇠는 누군가 이미 따놓은 상태였다.",
+  "locations": [
+    {
+      "id": "loc_entrance",
+      "name": "정문 앞",
+      "visible_from_start": true,
+      "description": "녹슨 철문이 삐걱거리며 열린다. 건물 내부는 어둡고 퀴퀴한 냄새가 난다. 복도 끝으로 두 갈래 길이 보인다. 왼쪽은 실험실, 오른쪽은 계단 아래 지하실로 이어진다.",
+      "clues": [],
+      "san_check": {
+        "required": false
+      },
+      "connections": ["loc_laboratory", "loc_basement"],
+      "npc": []
+    },
+    {
+      "id": "loc_laboratory",
+      "name": "실험실",
+      "visible_from_start": false,
+      "description": "뒤집힌 의자, 깨진 비커, 바닥에 번진 검은 얼룩. 서둘러 떠난 흔적이 역력하다. 창문 너머로 달빛이 비쳐 벽에 기묘한 그림자를 만들어낸다.",
+      "clues": [
+        {
+          "id": "clue_notebook",
+          "text": "실험 노트가 발견됐다. 마지막 페이지에는 떨리는 글씨로 이렇게 적혀 있다. '그것은 각도가 없다. 차원이 없다. 우리가 본 것은 그것의 그림자조차 아니었다.'",
+          "requires_check": true,
+          "skill": "발견",
+          "difficulty": "normal",
+          "san_check": {
+            "required": false
+          },
+          "revealed": false
+        }
+      ],
+      "san_check": {
+        "required": true,
+        "loss": { "success": "0", "fail": "1d3" },
+        "reason": "벽 전체를 뒤덮은 기호들 — 인간의 손으로 그린 것이 아닌 듯한 각도와 크기로."
+      },
+      "connections": ["loc_entrance"],
+      "npc": []
+    },
+    {
+      "id": "loc_basement",
+      "name": "지하실",
+      "visible_from_start": false,
+      "description": "계단을 내려가자 습한 공기가 폐를 채운다. 천장에 매달린 전구 하나가 깜빡인다. 구석에 금속 선반이 있고, 그 위에 유리 표본 용기들이 늘어서 있다.",
+      "clues": [
+        {
+          "id": "clue_specimen",
+          "text": "용기 안에 담긴 것을 들여다본 순간, 그것이 움직였다. 아니, 움직인 것이 아닐 수도 있다. 라벨에는 단 두 글자만 적혀 있다. 'R.L.'",
+          "requires_check": false,
+          "skill": null,
+          "difficulty": null,
+          "san_check": {
+            "required": false
+          },
+          "revealed": false
+        }
+      ],
+      "san_check": {
+        "required": false
+      },
+      "connections": ["loc_entrance"],
+      "npc": []
+    }
+  ],
+  "ending": {
+    "conditions": [],
+    "good": "[테스트 시나리오 — 엔딩 없음]",
+    "bad": "[테스트 시나리오 — 엔딩 없음]"
+  }
+}
