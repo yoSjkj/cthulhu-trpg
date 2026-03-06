@@ -41,16 +41,11 @@ function checkPassesDifficulty(result, difficulty) {
   return false
 }
 
-// LUCK 소비: LUCK 수치만큼 d100 굴려 성공하면 결과 변경
-// 반환: { success: boolean, luckUsed: number }
-// luckUsed = 소비된 LUCK 포인트 (성공 시 사용한 LUCK 값, 실패 시 0)
-export function useLuck(currentLuck) {
-  if (currentLuck <= 0) return { success: false, luckUsed: 0 }
-  const roll = rollD100()
-  if (roll <= currentLuck) {
-    return { success: true, luckUsed: currentLuck }
-  }
-  return { success: false, luckUsed: 0 }
+// LUCK 소비: 판정 실패치(rolled - skillValue)만큼 LUCK 소비 → 확정 보통 성공
+// 반환: { canUse: boolean, cost: number }
+export function useLuck(rolled, skillValue, currentLuck) {
+  const cost = Math.max(1, rolled - skillValue)
+  return { canUse: currentLuck >= cost, cost }
 }
 
 // 판정 결과 한국어 라벨

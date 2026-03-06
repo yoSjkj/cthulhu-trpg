@@ -57,6 +57,21 @@ export const useGameStore = create(
 
       applyDamage: (updatedCharacter) => set({ character: updatedCharacter }),
 
+      healHP: (amount) => set(state => ({
+        character: {
+          ...state.character,
+          HP: Math.min(state.character.HP + amount, state.character.maxHP),
+        },
+      })),
+
+      spendLuck: (amount) => set(state => ({
+        character: { ...state.character, LUCK: Math.max(0, state.character.LUCK - amount) },
+      })),
+
+      clearTemporaryInsanity: () => set(state => ({
+        character: { ...state.character, temporaryInsanity: null },
+      })),
+
       startCombat: (combatState) => set({ combat: combatState }),
 
       nextTurn: () => set(state => {
