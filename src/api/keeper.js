@@ -11,7 +11,7 @@ function buildSystemPrompt(scenario, character, currentLocation) {
   ].filter(Boolean).join('\n')
 
   const locationInfo = currentLocation
-    ? `\n\n## 현재 장소\n이름: ${currentLocation.name}\n묘사: ${currentLocation.description}${
+    ? `\n\n## 현재 장소\nID: ${currentLocation.id}\n이름: ${currentLocation.name}\n묘사: ${currentLocation.description}${
         currentLocation.san_check?.required
           ? `\n[주의: 이 장소는 SAN 체크가 필요한 공간입니다 — ${currentLocation.san_check.reason}]`
           : ''
@@ -78,6 +78,7 @@ ${insanityStatus ? `광기 상태:\n${insanityStatus}` : '광기 없음'}
 {
   "narrative": "장면 묘사 (빈 줄 포함, 150자 이내)",
   "choices": ["행동1", "행동2", "행동3"],
+  "move_to": null,
   "requires_check": {
     "needed": false,
     "skill": "",
@@ -89,8 +90,7 @@ ${insanityStatus ? `광기 상태:\n${insanityStatus}` : '광기 없음'}
     "loss": { "success": "0", "fail": "1d3" },
     "reason": ""
   },
-  "combat_start": false,
-  "move_to": null
+  "combat_start": false
 }
 
 JSON 외 다른 텍스트를 출력하지 마십시오.`
@@ -187,6 +187,7 @@ export function parseKeeperResponse(text) {
     return {
       narrative: text || '(응답을 처리하지 못했습니다.)',
       choices: FALLBACK_CHOICES,
+      move_to: null,
       requires_check: { needed: false, skill: '', difficulty: 'normal', reason: '' },
       san_check: { needed: false, loss: { success: '0', fail: '0' }, reason: '' },
       combat_start: false,
