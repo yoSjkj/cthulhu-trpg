@@ -56,7 +56,7 @@ export const useGameStore = create(
         lowestSAN: Math.min(state.lowestSAN, updatedCharacter.SAN),
       })),
 
-      applyDamage: (updatedCharacter) => set({ character: updatedCharacter }),
+      updateCharacter: (updatedCharacter) => set({ character: updatedCharacter }),
 
       healHP: (amount) => set(state => ({
         character: {
@@ -73,26 +73,10 @@ export const useGameStore = create(
         character: { ...state.character, temporaryInsanity: null },
       })),
 
-      startCombat: (combatState) => set({ combat: combatState }),
-
-      nextTurn: () => set(state => {
-        if (!state.combat) return {}
-        const next = (state.combat.currentTurn + 1) % state.combat.order.length
-        return {
-          combat: {
-            ...state.combat,
-            currentTurn: next,
-            round: next === 0 ? state.combat.round + 1 : state.combat.round,
-          },
-        }
-      }),
-
-      endCombat: () => set({ combat: null }),
-
       setEscapeAvailable: (val) => set({ escapeAvailable: val }),
 
       gameOver: (cause) => {
-        const state = useGameStore.getState()
+        const state = get()
         const resolveEnding = (id, field) => state.scenario?.endings?.[id]?.[field] ?? null
         const resolveId = (cause) =>
           cause === 'good_ending' ? state.scenario?.ending?.good :

@@ -60,7 +60,7 @@ ${allLocations}
 ## 시나리오에 존재하는 단서 (전부)
 ${allClues}
 
-${escapeAvailable ? `## 탈출 가능 상태\n탐사자가 충분한 단서를 확보했다. 탐사자가 성당에서 나가거나 탈출하려는 행동을 취하면 trigger_ending: "${scenario.ending?.good ?? 'good_ending'}"을 반환하십시오.\n\n` : ''}## 세계관 제약 (절대 준수)
+${escapeAvailable ? `## 탈출 가능 상태\n탐사자가 충분한 단서를 확보했다. 탐사자가 탈출하려는 행동을 취하면 trigger_ending: "${scenario.ending?.good ?? 'good_ending'}"을 반환하십시오.\n\n` : ''}## 세계관 제약 (절대 준수)
 - 위 목록에 없는 장소는 존재하지 않습니다. 새로운 방, 건물, 지역을 창작하지 마십시오.
 - 위 목록에 없는 단서, 문서, NPC, 사건을 즉흥으로 만들지 마십시오.
 - 탐사자가 목록 외 장소로 가려 한다면 "갈 수 없다"는 묘사로 자연스럽게 막으십시오.

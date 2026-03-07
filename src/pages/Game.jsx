@@ -32,7 +32,7 @@ export default function Game() {
   const {
     character, scenario, currentLocationId, revealedClues, log,
     sessionSANLoss, turnsPlayed, addLog, revealClue, applySanLoss: storeSanLoss, gameOver, moveLocation,
-    escapeAvailable, setEscapeAvailable, reset, applyDamage, healHP, spendLuck, clearTemporaryInsanity,
+    escapeAvailable, setEscapeAvailable, reset, updateCharacter, healHP, spendLuck, clearTemporaryInsanity,
   } = useGameStore()
   const apiKey = useSetupStore(s => s.apiKey)
 
@@ -120,27 +120,19 @@ export default function Game() {
   }
 
   // ── 엔딩 조건 체크 ─────────────────────────────────────
-  const checkEndings = (overrideLocationId = null) => {
-    const { revealedClues: clues, turnsPlayed: turns, currentLocationId: locId, escapeAvailable: canEscape } = useGameStore.getState()
-    const locToCheck = overrideLocationId ?? locId
+  const checkEndings = () => {
+    const { revealedClues: clues, escapeAvailable: canEscape } = useGameStore.getState()
     const conditions = scenario.ending?.conditions ?? []
 
-    // 턴 제한은 pressure force_combat이 처리 (checkEndings에서는 스킵)
-
     // 단서 수집 → 탈출 가능 상태
-    let currentEscape = canEscape
-    if (!currentEscape) {
+    if (!canEscape) {
       const cluesCond = conditions.find(c => c.type === 'clues_collected')
       if (cluesCond?.required.every(id => clues.includes(id))) {
         setEscapeAvailable(true)
-        currentEscape = true
         addLog('system', '[단서 확보] 충분한 단서를 손에 쥐었다. 이제 빠져나갈 수 있다.')
       }
     }
-
-    // location_reached는 AI trigger_ending 방식으로 처리 (자동 발동 없음)
-
-    return false
+    // 탈출 엔딩은 AI trigger_ending 방식으로 처리
   }
 
   // ── 키퍼 호출 (항상 최신 character를 가져옴) ──────────
@@ -197,19 +189,17 @@ export default function Game() {
           movedToId = response.move_to
           addLog('system', `[이동] ${validLoc.name}`)
           autoRevealClues(response.move_to)
-          if (checkEndings(response.move_to)) return
         }
       }
 
-      // 턴 제한 엔딩 체크 (이동 없을 때도)
-      if (!movedToId && checkEndings()) return
+      checkEndings()
 
       // HP 손실 처리 (함정, 전투 반격, 독 등)
       if (response.hp_loss?.needed) {
         const { character: hpChar } = useGameStore.getState()
         const dmg = rollDamage(response.hp_loss.formula || '1d6')
         const newHP = Math.max(0, hpChar.HP - dmg)
-        applyDamage({ ...hpChar, HP: newHP, isAlive: newHP > 0 })
+        updateCharacter({ ...hpChar, HP: newHP, isAlive: newHP > 0 })
         addLog('system', `[피해] HP -${dmg}${response.hp_loss.reason ? ` (${response.hp_loss.reason})` : ''} → ${newHP}`)
         if (newHP <= 0) { gameOver(forcedCombatEndingRef.current ?? 'death'); return }
       }
@@ -347,6 +337,14 @@ export default function Game() {
     handleChoice(text)
   }
 
+  // ── 현재 장소에서 해당 기술로 발견 가능한 첫 번째 단서 반환 ──
+  const findUnrevealedClue = (skill) => {
+    const loc = scenario.locations.find(l => l.id === useGameStore.getState().currentLocationId)
+    return loc?.clues?.find(
+      cl => !useGameStore.getState().revealedClues.includes(cl.id) && cl.requires_check && cl.skill === skill
+    ) ?? null
+  }
+
   const handleRollCheck = () => {
     if (!pendingCheck) return
     const { character: c } = useGameStore.getState()
@@ -377,12 +375,8 @@ export default function Game() {
 
       // 단서 공개
       let clueText = null
-      const loc = scenario.locations.find(l => l.id === currentLocationId)
-      const unrevealed = loc?.clues?.filter(
-        cl => !revealedClues.includes(cl.id) && cl.requires_check && cl.skill === skill
-      )
-      if (unrevealed?.length > 0) {
-        const clue = unrevealed[0]
+      const clue = findUnrevealedClue(skill)
+      if (clue) {
         revealClue(clue.id)
         clueText = clue.text
         addLog('system', `[단서 발견] ${clue.text}`)
@@ -417,15 +411,11 @@ export default function Game() {
     addLog('check', `[LUCK 소비 ${cost}] ${skill} 판정 성공으로 전환 (LUCK: ${c.LUCK} → ${c.LUCK - cost})`)
 
     let clueText = null
-    const loc = scenario.locations.find(l => l.id === currentLocationId)
-    const unrevealed = loc?.clues?.filter(
-      cl => !revealedClues.includes(cl.id) && cl.requires_check && cl.skill === skill
-    )
-    if (unrevealed?.length > 0) {
-      const clue = unrevealed[0]
-      revealClue(clue.id)
-      clueText = clue.text
-      addLog('system', `[단서 발견] ${clue.text}`)
+    const luckClue = findUnrevealedClue(skill)
+    if (luckClue) {
+      revealClue(luckClue.id)
+      clueText = luckClue.text
+      addLog('system', `[단서 발견] ${luckClue.text}`)
     }
 
     const luckText = `[LUCK 소비: ${skill} 판정 성공]`
@@ -457,14 +447,12 @@ export default function Game() {
 
     if (result.success) {
       let clueText = null
-      const loc = scenario.locations.find(l => l.id === currentLocationId)
-      const unrevealed = loc?.clues?.filter(cl => !revealedClues.includes(cl.id) && cl.requires_check && cl.skill === skill)
-      if (unrevealed?.length > 0) {
-        const clue = unrevealed[0]
-        revealClue(clue.id)
-        clueText = clue.text
-        addLog('system', `[단서 발견] ${clue.text}`)
-        if (clue.san_check?.required) setPendingSan({ loss: clue.san_check.loss, reason: clue.san_check.reason })
+      const pushClue = findUnrevealedClue(skill)
+      if (pushClue) {
+        revealClue(pushClue.id)
+        clueText = pushClue.text
+        addLog('system', `[단서 발견] ${pushClue.text}`)
+        if (pushClue.san_check?.required) setPendingSan({ loss: pushClue.san_check.loss, reason: pushClue.san_check.reason })
       }
       const next = [...prevMessages, { role: 'user', content: `${resultText}${clueText ? `\n[발견: ${clueText}]` : ''}` }]
       setMessages(next)
@@ -624,11 +612,7 @@ export default function Game() {
                     </div>
                     <div className="text-parchment font-medium">{pendingCheck.skill}</div>
                     <div className="font-mono text-blood text-sm">
-                      {(() => {
-                        const c = useGameStore.getState().character
-                        const sk = pendingCheck.skill
-                        return (c.skills?.[sk] ?? (ABILITY_MAP[sk] ? c.abilities?.[ABILITY_MAP[sk]] : 0) ?? 0) + '%'
-                      })()}
+                      {(character.skills?.[pendingCheck.skill] ?? (ABILITY_MAP[pendingCheck.skill] ? character.abilities?.[ABILITY_MAP[pendingCheck.skill]] : 0) ?? 0) + '%'}
                     </div>
                   </div>
                   <button onClick={handleRollCheck}
