@@ -92,9 +92,11 @@ export const useGameStore = create(
 
       gameOver: (cause) => {
         const state = useGameStore.getState()
+        const resolveEndingText = (id) => state.scenario?.endings?.[id]?.text ?? id ?? null
         const endingText =
-          cause === 'good_ending' ? state.scenario?.ending?.good :
-          cause === 'bad_ending'  ? state.scenario?.ending?.bad  : null
+          cause === 'good_ending' ? resolveEndingText(state.scenario?.ending?.good) :
+          cause === 'bad_ending'  ? resolveEndingText(state.scenario?.ending?.bad)  :
+          resolveEndingText(cause)
         const stats = {
           cause,
           endingText:        endingText ?? null,

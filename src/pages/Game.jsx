@@ -54,6 +54,8 @@ export default function Game() {
   const [insanityTurnsLeft, setInsanityTurnsLeftState] = useState(0)
   const insanityRef = useRef(0)
   const setInsanityTurnsLeft = (n) => { insanityRef.current = n; setInsanityTurnsLeftState(n) }
+  // trigger_ending 대기 중인 엔딩 id (SAN 체크 후 발동)
+  const [pendingEndingId, setPendingEndingId] = useState(null)
   // 전투 중 적 상태 (ref: async callKeeper stale closure 방지)
   const [combatEnemy, setCombatEnemyState] = useState(null)
   const combatEnemyRef = useRef(null)
@@ -209,6 +211,47 @@ export default function Game() {
         if (newHP <= 0) { gameOver('death'); return }
       }
 
+      // trigger_ending 처리
+      if (response.trigger_ending && scenario.endings?.[response.trigger_ending]) {
+        setPendingEndingId(response.trigger_ending)
+        // AI가 san_check를 안 보냈으면 interactable 정의에서 폴백
+        if (!response.san_check?.needed) {
+          const interactable = scenario.locations
+            .flatMap(l => l.interactable ?? [])
+            .find(i => i.trigger_ending === response.trigger_ending)
+          if (interactable?.san_check?.required) {
+            response.san_check = { needed: true, loss: interactable.san_check.loss, reason: interactable.san_check.reason }
+          } else {
+            // san_check 없으면 즉시 엔딩 발동
+            addLog('system', scenario.endings[response.trigger_ending].text ?? '')
+            setPendingEndingId(null)
+            gameOver(response.trigger_ending)
+            return
+          }
+        }
+      }
+
+      // pressure 체크 (turn별 긴장 이벤트)
+      const { turnsPlayed: freshTurns } = useGameStore.getState()
+      const pressureStage = (scenario.pressure?.stages ?? []).find(s => s.turn === freshTurns)
+      if (pressureStage) {
+        addLog('system', `[압박] ${pressureStage.message}`)
+        if (pressureStage.effect === 'san_drain') {
+          const { character: drainChar, sessionSANLoss: drainSanLoss } = useGameStore.getState()
+          const lossAmt = pressureStage.amount ?? 1
+          const updatedDrainChar = applySanLoss(drainChar, lossAmt, drainSanLoss)
+          storeSanLoss(lossAmt, updatedDrainChar)
+          addLog('san', `[압박] SAN -${lossAmt} → ${updatedDrainChar.SAN}`)
+          if (!updatedDrainChar.isSane) { gameOver('insanity'); return }
+        } else if (pressureStage.effect === 'san_check') {
+          setPendingSan({ loss: pressureStage.loss, reason: pressureStage.message })
+          setChoices([])
+          setUi(UI.SAN)
+          return
+        }
+        // force_combat은 turn_limit 조건(checkEndings)이 처리
+      }
+
       // 우선순위: 장소 JSON san_check → AI san_check → AI requires_check → 전투
       const activeLocationId = movedToId ?? currentLocationId
       if (triggerLocationSanCheck(activeLocationId)) {
@@ -236,9 +279,11 @@ export default function Game() {
           // 전투 최초 진입: 현재 장소의 enemies[]에서 적 초기화
           const activeLocId = movedToId ?? currentLocationId
           const activeLoc = scenario.locations.find(l => l.id === activeLocId)
-          const enemyDef = activeLoc?.enemies?.find(e =>
+          const locEnemies = activeLoc?.enemies ?? []
+          const enemyPool = locEnemies.length > 0 ? locEnemies : (scenario.enemies ?? [])
+          const enemyDef = enemyPool.find(e =>
             !response.enemy?.name || e.name === response.enemy.name
-          ) ?? activeLoc?.enemies?.[0]
+          ) ?? enemyPool[0]
           if (enemyDef) {
             setCombatEnemy({ ...enemyDef, hp: enemyDef.maxHp })
           }
@@ -430,6 +475,16 @@ export default function Game() {
     }
     if (updatedChar.indefiniteInsanity && !c.indefiniteInsanity) {
       addLog('system', `[부정기 광기] ${updatedChar.indefiniteInsanity.description}`)
+    }
+
+    // trigger_ending 대기 중이면 SAN 체크 후 엔딩 발동
+    if (pendingEndingId) {
+      const ending = scenario.endings?.[pendingEndingId]
+      if (ending) addLog('system', ending.text ?? '')
+      setPendingSan(null)
+      setPendingEndingId(null)
+      gameOver(pendingEndingId)
+      return
     }
 
     const next = [...messages, { role: 'user', content: sanText }]

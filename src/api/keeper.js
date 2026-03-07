@@ -17,7 +17,11 @@ function buildSystemPrompt(scenario, character, currentLocation, insanityTurnsLe
         currentLocation.san_check?.required
           ? `\n[주의: 이 장소는 SAN 체크가 필요한 공간입니다 — ${currentLocation.san_check.reason}]`
           : ''
-      }${currentLocation.npc?.length ? `\nNPC: ${currentLocation.npc.map(n => n.name + ' — ' + (n.interact ?? n.description)).join(' / ')}` : ''}`
+      }${currentLocation.npc?.length ? `\nNPC: ${currentLocation.npc.map(n => n.name + ' — ' + (n.interact ?? n.description)).join(' / ')}` : ''}${
+        currentLocation.interactable?.length
+          ? `\n인터랙션 가능 요소:\n${currentLocation.interactable.map(i => `  - ${i.name}: "${i.action}" → trigger_ending: "${i.trigger_ending}"`).join('\n')}`
+          : ''
+      }`
     : ''
 
   const allLocations = scenario.locations
@@ -81,6 +85,10 @@ ${insanityStatus ? `광기 상태:\n${insanityStatus}` : '광기 없음'}${insan
 - [밀어붙이기 실패] 컨텍스트를 받으면 단순 실패보다 훨씬 가혹한 결과를 부여한다.
 - hp_loss, san_check, combat_start 중 하나 이상을 반드시 반환한다.
 
+**trigger_ending 반환 조건:**
+- 탐사자가 인터랙션 가능 요소의 action을 실행할 때 해당 trigger_ending 값을 반환하십시오.
+- trigger_ending 반환 시 san_check도 해당 요소의 분위기에 맞게 함께 반환하십시오.
+
 **combat_start: true를 반드시 반환해야 하는 경우:**
 - 탐사자가 적대적 존재를 직접 공격할 때
 - 적대적 존재가 탐사자를 공격하거나 달려들 때 (기습 포함)
@@ -141,7 +149,8 @@ ${insanityStatus ? `광기 상태:\n${insanityStatus}` : '광기 없음'}${insan
     "needed": false,
     "formula": "1d6",
     "reason": ""
-  }
+  },
+  "trigger_ending": null
 }
 
 JSON 외 다른 텍스트를 출력하지 마십시오.`
@@ -290,6 +299,7 @@ export function parseKeeperResponse(text) {
       san_check: { needed: false, loss: { success: '0', fail: '0' }, reason: '' },
       combat_start: false,
       hp_loss: { needed: false, formula: '', reason: '' },
+      trigger_ending: null,
     }
   }
 }

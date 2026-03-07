@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useSetupStore, loadHistory } from '../store/gameStore'
 import testScenario from '../data/scenarios/test_scenario.json'
+import testScenario2 from '../data/scenarios/test_scenario2.json'
 
-const SCENARIOS = [testScenario]
+const SCENARIOS = [testScenario, testScenario2]
 
 // API 키 유효성 검증 (최소 호출)
 async function verifyApiKey(key) {
