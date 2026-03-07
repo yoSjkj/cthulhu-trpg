@@ -6,7 +6,7 @@ import { performSanCheck, applySanLoss } from '../engine/sanity'
 import { performAttack, performDodge, WEAPONS } from '../engine/combat'
 import { rollDamage } from '../engine/dice'
 
-const UI = { IDLE: 'idle', LOADING: 'loading', CHECK: 'check', SAN: 'san', COMBAT: 'combat' }
+const UI = { IDLE: 'idle', LOADING: 'loading', CHECK: 'check', SAN: 'san', COMBAT: 'combat', ENDING: 'ending' }
 
 // AI가 영어 기술명을 반환할 때 한글로 정규화
 const SKILL_NAME_MAP = {
@@ -56,6 +56,8 @@ export default function Game() {
   const setInsanityTurnsLeft = (n) => { insanityRef.current = n; setInsanityTurnsLeftState(n) }
   // trigger_ending 대기 중인 엔딩 id (SAN 체크 후 발동)
   const [pendingEndingId, setPendingEndingId] = useState(null)
+  // 엔딩 확정 대기 (텍스트 표시 후 "계속..." 버튼으로 gameOver 호출)
+  const [pendingGameOver, setPendingGameOver] = useState(null)
   // 전투 중 적 상태 (ref: async callKeeper stale closure 방지)
   const [combatEnemy, setCombatEnemyState] = useState(null)
   const combatEnemyRef = useRef(null)
@@ -104,6 +106,17 @@ export default function Game() {
     return true
   }
 
+  // ── 엔딩 텍스트 resolve (id 또는 plain text 모두 처리) ──
+  const resolveEndingText = (idOrText) =>
+    scenario.endings?.[idOrText]?.text ?? idOrText ?? ''
+
+  // ── 엔딩 예약: 텍스트 표시 후 "계속..." 버튼 대기 ──────
+  const scheduleGameOver = (cause) => {
+    setPendingGameOver(cause)
+    setChoices([])
+    setUi(UI.ENDING)
+  }
+
   // ── 엔딩 조건 체크 ─────────────────────────────────────
   const checkEndings = (overrideLocationId = null) => {
     const { revealedClues: clues, turnsPlayed: turns, currentLocationId: locId, escapeAvailable: canEscape } = useGameStore.getState()
@@ -113,8 +126,9 @@ export default function Game() {
     // 턴 제한
     const turnCond = conditions.find(c => c.type === 'turn_limit')
     if (turnCond && turns >= turnCond.max_turns) {
-      addLog('system', scenario.ending.bad)
-      gameOver('bad_ending')
+      const text = resolveEndingText(scenario.ending?.bad)
+      if (text) addLog('system', text)
+      scheduleGameOver('bad_ending')
       return true
     }
 
@@ -133,8 +147,9 @@ export default function Game() {
     if (currentEscape) {
       const locCond = conditions.find(c => c.type === 'location_reached' && c.requires_state === 'escape_available')
       if (locCond && locToCheck === locCond.location_id) {
-        addLog('system', scenario.ending.good)
-        gameOver('good_ending')
+        const text = resolveEndingText(scenario.ending?.good)
+        if (text) addLog('system', text)
+        scheduleGameOver('good_ending')
         return true
       }
     }
@@ -222,10 +237,10 @@ export default function Game() {
           if (interactable?.san_check?.required) {
             response.san_check = { needed: true, loss: interactable.san_check.loss, reason: interactable.san_check.reason }
           } else {
-            // san_check 없으면 즉시 엔딩 발동
+            // san_check 없으면 엔딩 예약
             addLog('system', scenario.endings[response.trigger_ending].text ?? '')
             setPendingEndingId(null)
-            gameOver(response.trigger_ending)
+            scheduleGameOver(response.trigger_ending)
             return
           }
         }
@@ -477,13 +492,13 @@ export default function Game() {
       addLog('system', `[부정기 광기] ${updatedChar.indefiniteInsanity.description}`)
     }
 
-    // trigger_ending 대기 중이면 SAN 체크 후 엔딩 발동
+    // trigger_ending 대기 중이면 SAN 체크 후 엔딩 예약
     if (pendingEndingId) {
       const ending = scenario.endings?.[pendingEndingId]
       if (ending) addLog('system', ending.text ?? '')
       setPendingSan(null)
       setPendingEndingId(null)
-      gameOver(pendingEndingId)
+      scheduleGameOver(pendingEndingId)
       return
     }
 
@@ -705,6 +720,15 @@ export default function Game() {
             </div>
             <FreeInput value={freeInput} onChange={setFreeInput} onSubmit={handleFreeInput} placeholder="전투 중 행동..." />
           </div>
+        )}
+
+        {ui === UI.ENDING && pendingGameOver && (
+          <button
+            onClick={() => gameOver(pendingGameOver)}
+            className="w-full text-center text-dust/60 text-xs tracking-widest py-4 hover:text-parchment/60 transition-colors"
+          >
+            계속...
+          </button>
         )}
 
         {ui === UI.LOADING && (
