@@ -40,7 +40,7 @@
       "clues": [
         {
           "id": "clue_entrance_wall",
-          "text": "입구 왼쪽 벽 — 손톱으로 긁어낸 글씨. '1912년 10월 14일 밤, 종이 울렸다. 우리는 모두 내려갔다. 기쁨으로. 다시는 올라오지 않았다. — 목격자 E. Holt'",
+          "text": "입구 왼쪽 벽 — 손톱으로 긁어낸 글씨. '1912년 10월 14일 밤, 종이 울렸다. 우리는 모두 내려갔다. 기쁨으로. 다시는 올라오지 않았다. — 목격자 E. Holt'\n그 아래 다른 필체로 덧붙여 있다. '그 전날 밤부터였다. 그들은 제단 앞에 무릎을 꿇고 새벽까지 기다렸다. 문양을 그리고, 말을 읊고, 그리고 나서야 종을 울렸다.'",
           "requires_check": false,
           "skill": null,
           "difficulty": null,
@@ -72,11 +72,31 @@
           "revealed": false
         },
         {
+          "id": "clue_nave_ritual_symbol",
+          "text": "제단 앞 바닥 — 무릎 꿇은 자국들 사이, 먼지 속에 반복적으로 그려진 기호가 있다. 손가락으로 그린 것 같다. 단순하지만 벽의 문자들과 같은 계통이다. 누군가 이 문양을 그리고 종 앞에 무릎을 꿇었다.",
+          "requires_check": true,
+          "skill": "발견",
+          "difficulty": "normal",
+          "ritual_component": "symbol",
+          "san_check": { "required": false },
+          "revealed": false
+        },
+        {
           "id": "clue_nave_bell",
           "text": "제단 위의 종 — 표면에 기름이 발라져 있다. 최근에 누군가 손질했다. 종 안쪽에 짧은 글씨: '준비됐다. — 1922년 9월'",
           "requires_check": true,
           "skill": "발견",
           "difficulty": "normal",
+          "san_check": { "required": false },
+          "revealed": false
+        },
+        {
+          "id": "clue_crypt_ritual_words",
+          "text": "납골당 석관 하나의 측면 — 다른 석관과 달리 문자가 새겨져 있다. 반복되는 짧은 구절: 'Aperire. Venire. Accipere.' 라틴어다. '열어라. 오라. 받아들여라.' 아래에 한글로 번역이 덧붙여 있다. 누군가 나중에 왔던 사람이 적어놓은 것 같다.",
+          "requires_check": true,
+          "skill": "발견",
+          "difficulty": "normal",
+          "ritual_component": "words",
           "san_check": { "required": false },
           "revealed": false
         }
@@ -92,14 +112,25 @@
         {
           "id": "interact_bell",
           "name": "종",
-          "description": "제단 위의 종. 울리면 어떤 일이 벌어질지 모른다.",
-          "action": "종을 울린다",
-          "trigger_ending": "ending_congregation",
-          "san_check": {
-            "required": true,
-            "loss": { "success": "1d3", "fail": "1d6" },
-            "reason": "종소리가 성당 전체에 울려퍼진다. 지하에서 응답이 온다."
-          }
+          "description": "제단 위의 종.",
+          "actions": [
+            {
+              "action": "종을 울린다 (준비 의식 완료)",
+              "requires_ritual": ["clue_nave_ritual_symbol", "clue_crypt_ritual_words"],
+              "trigger_ending": "ending_congregation",
+              "san_check": {
+                "required": true,
+                "loss": { "success": "1d3", "fail": "1d6" },
+                "reason": "종소리가 성당 전체에 울려퍼진다. 지하에서 응답이 온다."
+              }
+            },
+            {
+              "action": "종을 그냥 울린다",
+              "requires_ritual": [],
+              "result": "no_effect",
+              "narrative_hint": "종소리가 울린다. 먼지가 떨어진다. 아무 일도 일어나지 않는다. 무언가 빠진 것 같은 느낌."
+            }
+          ]
         }
       ]
     },
@@ -203,14 +234,24 @@
       {
         "type": "location_reached",
         "location_id": "loc_entrance",
-        "requires_state": "escape_available",
+        "requires_state": "secret_escape_available",
         "result": "ending_escape",
         "description": "일기 확보 후 아무것도 하지 않고 입구로 복귀 시 시크릿 엔딩"
       },
       {
         "type": "interaction",
         "interaction_id": "interact_bell",
-        "result": "ending_congregation"
+        "requires_clues": ["clue_nave_ritual_symbol", "clue_crypt_ritual_words"],
+        "result": "ending_congregation",
+        "description": "의식 단서 2개 수집 후 종 울리기 → 축복 엔딩"
+      },
+      {
+        "type": "interaction",
+        "interaction_id": "interact_bell",
+        "requires_clues": [],
+        "excludes_clues": ["clue_nave_ritual_symbol", "clue_crypt_ritual_words"],
+        "result": "no_effect",
+        "description": "의식 없이 그냥 종 울리기 → 아무 반응 없음"
       },
       {
         "type": "interaction",

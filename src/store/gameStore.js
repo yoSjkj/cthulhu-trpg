@@ -15,6 +15,7 @@ const INITIAL = {
   gameOverStats: null,
   turnsPlayed: 0,
   lowestSAN: 99,
+  escapeAvailable: false,
 }
 
 // ── 게임 상태 스토어 (localStorage 영속) ───────────────────
@@ -135,6 +136,7 @@ export const useGameStore = create(
         log: state.log.slice(-200), // 최근 200개로 제한
         turnsPlayed: state.turnsPlayed,
         lowestSAN: state.lowestSAN,
+        escapeAvailable: state.escapeAvailable ?? false,
       }),
       onRehydrateStorage: () => (state, error) => {
         if (error) console.warn('세이브 로드 실패:', error)

@@ -56,6 +56,8 @@ export default function Game() {
   const setInsanityTurnsLeft = (n) => { insanityRef.current = n; setInsanityTurnsLeftState(n) }
   // trigger_ending 대기 중인 엔딩 id (SAN 체크 후 발동)
   const [pendingEndingId, setPendingEndingId] = useState(null)
+  // force_combat 발동 시 사망 엔딩 id (HP 0 → 이 엔딩으로 연결)
+  const forcedCombatEndingRef = useRef(null)
   // 엔딩 확정 대기 (텍스트 표시 후 "계속..." 버튼으로 gameOver 호출)
   const [pendingGameOver, setPendingGameOver] = useState(null)
   // 전투 중 적 상태 (ref: async callKeeper stale closure 방지)
@@ -123,14 +125,7 @@ export default function Game() {
     const locToCheck = overrideLocationId ?? locId
     const conditions = scenario.ending?.conditions ?? []
 
-    // 턴 제한
-    const turnCond = conditions.find(c => c.type === 'turn_limit')
-    if (turnCond && turns >= turnCond.max_turns) {
-      const text = resolveEndingText(scenario.ending?.bad)
-      if (text) addLog('system', text)
-      scheduleGameOver('bad_ending')
-      return true
-    }
+    // 턴 제한은 pressure force_combat이 처리 (checkEndings에서는 스킵)
 
     // 단서 수집 → 탈출 가능 상태
     let currentEscape = canEscape
@@ -143,16 +138,7 @@ export default function Game() {
       }
     }
 
-    // 탈출 가능 상태에서 출구 장소 도달 → 굿엔딩
-    if (currentEscape) {
-      const locCond = conditions.find(c => c.type === 'location_reached' && c.requires_state === 'escape_available')
-      if (locCond && locToCheck === locCond.location_id) {
-        const text = resolveEndingText(scenario.ending?.good)
-        if (text) addLog('system', text)
-        scheduleGameOver('good_ending')
-        return true
-      }
-    }
+    // location_reached는 AI trigger_ending 방식으로 처리 (자동 발동 없음)
 
     return false
   }
@@ -190,6 +176,8 @@ export default function Game() {
         summary: currentSummary,
         insanityTurnsLeft: insanityRef.current,
         combatEnemy: combatEnemyRef.current,
+        revealedClues: useGameStore.getState().revealedClues,
+        escapeAvailable: useGameStore.getState().escapeAvailable ?? false,
       })
 
       setMessages([...nextMessages, { role: 'assistant', content: response.narrative }])
@@ -197,7 +185,7 @@ export default function Game() {
 
       // 게임오버 체크 (최신 상태로)
       const { character: latestChar } = useGameStore.getState()
-      if (!latestChar?.isAlive) { gameOver('death'); return }
+      if (!latestChar?.isAlive) { gameOver(forcedCombatEndingRef.current ?? 'death'); return }
       if (!latestChar?.isSane)  { gameOver('insanity'); return }
 
       // 장소 이동 처리
@@ -223,7 +211,7 @@ export default function Game() {
         const newHP = Math.max(0, hpChar.HP - dmg)
         applyDamage({ ...hpChar, HP: newHP, isAlive: newHP > 0 })
         addLog('system', `[피해] HP -${dmg}${response.hp_loss.reason ? ` (${response.hp_loss.reason})` : ''} → ${newHP}`)
-        if (newHP <= 0) { gameOver('death'); return }
+        if (newHP <= 0) { gameOver(forcedCombatEndingRef.current ?? 'death'); return }
       }
 
       // trigger_ending 처리
@@ -231,11 +219,19 @@ export default function Game() {
         setPendingEndingId(response.trigger_ending)
         // AI가 san_check를 안 보냈으면 interactable 정의에서 폴백
         if (!response.san_check?.needed) {
-          const interactable = scenario.locations
-            .flatMap(l => l.interactable ?? [])
-            .find(i => i.trigger_ending === response.trigger_ending)
-          if (interactable?.san_check?.required) {
-            response.san_check = { needed: true, loss: interactable.san_check.loss, reason: interactable.san_check.reason }
+          const allInteractables = scenario.locations.flatMap(l => l.interactable ?? [])
+          // actions[] 배열 구조 지원: trigger_ending 매칭 action 탐색
+          let sanDef = null
+          for (const i of allInteractables) {
+            if (Array.isArray(i.actions)) {
+              const matchedAction = i.actions.find(a => a.trigger_ending === response.trigger_ending)
+              if (matchedAction?.san_check?.required) { sanDef = matchedAction.san_check; break }
+            } else if (i.trigger_ending === response.trigger_ending && i.san_check?.required) {
+              sanDef = i.san_check; break
+            }
+          }
+          if (sanDef) {
+            response.san_check = { needed: true, loss: sanDef.loss, reason: sanDef.reason }
           } else {
             // san_check 없으면 엔딩 예약
             addLog('system', scenario.endings[response.trigger_ending].text ?? '')
@@ -263,8 +259,19 @@ export default function Game() {
           setChoices([])
           setUi(UI.SAN)
           return
+        } else if (pressureStage.effect === 'force_combat') {
+          // 강제 전투 시작: 적 초기화 + AI 호출로 전투 narrative 생성
+          const enemyDef = (scenario.enemies ?? []).find(e => e.id === pressureStage.enemy_id) ?? (scenario.enemies ?? [])[0]
+          if (enemyDef) {
+            setCombatEnemy({ ...enemyDef, hp: enemyDef.maxHp })
+            forcedCombatEndingRef.current = pressureStage.result ?? null
+          }
+          const forceMsg = `[압박] ${pressureStage.message}`
+          const next = [...nextMessages, { role: 'user', content: forceMsg }]
+          setMessages(next)
+          callKeeper(next, { forcedCombat: true })
+          return
         }
-        // force_combat은 turn_limit 조건(checkEndings)이 처리
       }
 
       // 우선순위: 장소 JSON san_check → AI san_check → AI requires_check → 전투

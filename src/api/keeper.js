@@ -6,7 +6,7 @@ export const SUMMARY_THRESHOLD = 40 // 이 이상이면 요약 압축 트리거
 const TIMEOUT_MS = 30000
 
 // ── 시스템 프롬프트 ───────────────────────────────────────
-function buildSystemPrompt(scenario, character, currentLocation, insanityTurnsLeft = 0, combatEnemy = null) {
+function buildSystemPrompt(scenario, character, currentLocation, insanityTurnsLeft = 0, combatEnemy = null, revealedClues = [], escapeAvailable = false) {
   const insanityStatus = [
     character.temporaryInsanity ? `일시적 광기: ${character.temporaryInsanity.description}` : null,
     character.indefiniteInsanity ? `부정기 광기: ${character.indefiniteInsanity.description}` : null,
@@ -19,7 +19,22 @@ function buildSystemPrompt(scenario, character, currentLocation, insanityTurnsLe
           : ''
       }${currentLocation.npc?.length ? `\nNPC: ${currentLocation.npc.map(n => n.name + ' — ' + (n.interact ?? n.description)).join(' / ')}` : ''}${
         currentLocation.interactable?.length
-          ? `\n인터랙션 가능 요소:\n${currentLocation.interactable.map(i => `  - ${i.name}: "${i.action}" → trigger_ending: "${i.trigger_ending}"`).join('\n')}`
+          ? `\n인터랙션 가능 요소:\n${currentLocation.interactable.flatMap(i => {
+              if (Array.isArray(i.actions)) {
+                return i.actions.map(a => {
+                  const reqClues = a.requires_ritual ?? []
+                  const condMet = reqClues.length === 0 || reqClues.every(c => revealedClues.includes(c))
+                  const effectPart = a.trigger_ending
+                    ? ` → trigger_ending: "${a.trigger_ending}"`
+                    : a.result === 'no_effect'
+                    ? ` → [효과 없음] narrative_hint: "${a.narrative_hint ?? '아무 일도 일어나지 않는다'}"`
+                    : ''
+                  const condPart = reqClues.length > 0 ? ` [선행 조건 ${condMet ? '충족' : '미충족 — trigger_ending 반환 금지'}]` : ''
+                  return `  - ${i.name}: "${a.action}"${effectPart}${condPart}`
+                })
+              }
+              return [`  - ${i.name}: "${i.action}" → trigger_ending: "${i.trigger_ending}"`]
+            }).join('\n')}`
           : ''
       }`
     : ''
@@ -45,7 +60,7 @@ ${allLocations}
 ## 시나리오에 존재하는 단서 (전부)
 ${allClues}
 
-## 세계관 제약 (절대 준수)
+${escapeAvailable ? `## 탈출 가능 상태\n탐사자가 충분한 단서를 확보했다. 탐사자가 성당에서 나가거나 탈출하려는 행동을 취하면 trigger_ending: "${scenario.ending?.good ?? 'good_ending'}"을 반환하십시오.\n\n` : ''}## 세계관 제약 (절대 준수)
 - 위 목록에 없는 장소는 존재하지 않습니다. 새로운 방, 건물, 지역을 창작하지 마십시오.
 - 위 목록에 없는 단서, 문서, NPC, 사건을 즉흥으로 만들지 마십시오.
 - 탐사자가 목록 외 장소로 가려 한다면 "갈 수 없다"는 묘사로 자연스럽게 막으십시오.
@@ -188,8 +203,8 @@ export async function summarizeHistory({ apiKey, messages, existingSummary = '' 
 }
 
 // ── API 호출 ─────────────────────────────────────────────
-export async function askKeeper({ apiKey, scenario, character, messages, context, currentLocation, summary = '', insanityTurnsLeft = 0, combatEnemy = null }) {
-  const systemPrompt = buildSystemPrompt(scenario, character, currentLocation, insanityTurnsLeft, combatEnemy)
+export async function askKeeper({ apiKey, scenario, character, messages, context, currentLocation, summary = '', insanityTurnsLeft = 0, combatEnemy = null, revealedClues = [], escapeAvailable = false }) {
+  const systemPrompt = buildSystemPrompt(scenario, character, currentLocation, insanityTurnsLeft, combatEnemy, revealedClues, escapeAvailable)
   const recentMessages = messages.slice(-MAX_HISTORY)
   const historyMessages = buildMessagesWithSummary(recentMessages, summary)
   const contextNote = buildContextNote(context)
@@ -266,6 +281,9 @@ function buildContextNote(context) {
   }
   if (context.enemyDefeated) {
     parts.push(`[적 사망: 전투 종료 — combat_start: false, enemy: null을 반환하고 전투 종료를 묘사할 것]`)
+  }
+  if (context.forcedCombat) {
+    parts.push(`[강제 전투 발동: 탈출 불가능한 상황. 압도적인 수의 적이 들어왔다. combat_start: true로 전투를 시작하고, 반드시 hp_loss를 반환해 탐사자가 피해를 입도록 할 것. 탈출 시도는 실패한다.]`)
   }
   return parts.join('\n')
 }
