@@ -155,7 +155,7 @@ export default function ApiSetup({ hasSave }) {
                     <span className="text-dust">{new Date(h.date).toLocaleDateString('ko-KR')}</span>
                   </div>
                   <div className="flex gap-3 text-dust">
-                    <span className={h.cause === '사망' ? 'text-blood' : 'text-dust'}>{h.cause}</span>
+                    <span className={h.cause === 'death' ? 'text-blood' : 'text-dust'}>{h.endingTitle ?? h.cause}</span>
                     <span>{h.turnsPlayed}턴</span>
                     <span>SAN {h.finalSAN}</span>
                     <span>단서 {h.cluesFound}개</span>
