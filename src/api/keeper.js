@@ -88,6 +88,7 @@ ${insanityStatus ? `광기 상태:\n${insanityStatus}` : '광기 없음'}${insan
 **trigger_ending 반환 조건:**
 - 탐사자가 인터랙션 가능 요소의 action을 실행할 때 해당 trigger_ending 값을 반환하십시오.
 - trigger_ending 반환 시 san_check도 해당 요소의 분위기에 맞게 함께 반환하십시오.
+- 인터랙션 가능 요소의 action을 선택지로 먼저 제시하지 마십시오. 탐사자가 자유 입력 또는 자연스러운 행동으로 직접 시도할 때만 발동하십시오.
 
 **combat_start: true를 반드시 반환해야 하는 경우:**
 - 탐사자가 적대적 존재를 직접 공격할 때
