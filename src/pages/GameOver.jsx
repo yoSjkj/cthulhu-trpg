@@ -11,7 +11,7 @@ export default function GameOver() {
   const gameOverStats = useGameStore(s => s.gameOverStats)
   const reset = useGameStore(s => s.reset)
   const causeInfo = CAUSE_TEXT[gameOverStats?.cause] ?? CAUSE_TEXT.death
-  const { title } = causeInfo
+  const title = gameOverStats?.endingTitle ?? causeInfo.title
   const sub = gameOverStats?.endingText ?? causeInfo.sub
 
   const handleRestart = () => {

@@ -92,14 +92,17 @@ export const useGameStore = create(
 
       gameOver: (cause) => {
         const state = useGameStore.getState()
-        const resolveEndingText = (id) => state.scenario?.endings?.[id]?.text ?? id ?? null
-        const endingText =
-          cause === 'good_ending' ? resolveEndingText(state.scenario?.ending?.good) :
-          cause === 'bad_ending'  ? resolveEndingText(state.scenario?.ending?.bad)  :
-          resolveEndingText(cause)
+        const resolveEnding = (id, field) => state.scenario?.endings?.[id]?.[field] ?? null
+        const resolveId = (cause) =>
+          cause === 'good_ending' ? state.scenario?.ending?.good :
+          cause === 'bad_ending'  ? state.scenario?.ending?.bad  : cause
+        const endingId = resolveId(cause)
+        const endingText  = resolveEnding(endingId, 'text')  ?? (endingId ?? null)
+        const endingTitle = resolveEnding(endingId, 'title')
         const stats = {
           cause,
           endingText:        endingText ?? null,
+          endingTitle:       endingTitle ?? null,
           lowestSAN:         state.lowestSAN,
           cluesFound:        state.revealedClues.length,
           cthulhuMythosSkill: state.character?.skills?.['크툴루신화'] ?? 0,
