@@ -3,44 +3,53 @@
   "title": "침묵하는 성당",
   "setting": "1920년대 매사추세츠 주, 아캄 외곽의 버려진 성당. 10년 전 신도 전원이 하룻밤 사이 실종됐다. 최근 근처 농가 세 곳에서 같은 일이 벌어졌다.",
   "intro": "아캄 경찰서에서 의뢰가 들어왔다. 성당 인근 농가 주민들이 사흘째 연락이 끊겼다. 마지막으로 목격된 장소는 10년 전 신도 실종 사건이 있었던 버려진 성당 근처. 당신은 성당 앞에 서 있다. 문은 열려 있다.",
-  "goal_hint": "성당 안에서 무슨 일이 있었는지 파악하고 빠져나가라. 시간이 지날수록 밖이 위험해진다.",
+  "goal_hint": "실종된 주민들의 행방을 파악하고 빠져나가라. 시간이 지날수록 밖이 위험해진다.",
+
+  "keeper_notes": {
+    "tone": "CoC 하드코어. 희망 없음. 탐사자는 언제나 불리하다. 모든 공포 묘사는 구체적이고 신체적으로 표현하라. 추상적 공포보다 감각적 공포 — 냄새, 소리, 촉감, 온도.",
+    "san_policy": "SAN 체크는 아끼지 말 것. 이상한 것을 보면 무조건 체크. 단서의 의미를 깨닫는 순간에도 체크. 탐사자가 SAN 20 이하로 떨어지면 묘사가 달라지기 시작한다 — 벽이 숨쉬는 것처럼 보인다, 서명들이 움직이는 것 같다, 종이 아직 울리는 것 같다.",
+    "clue_philosophy": "단서는 탐사자가 능동적으로 찾아야 한다. 그냥 서있으면 아무것도 모른다. 발견 판정 실패 시 단서 없음 — 재시도 가능하지만 턴 소모.",
+    "mythos_gains": "크툴루 신화 수치는 진실에 가까워질수록 오른다. clue_nave_wall 확인 시 +2, clue_crypt_diary 확인 시 +5, 축복 엔딩 직전 +8."
+  },
+
   "pressure": {
     "stages": [
       {
         "turn": 15,
-        "message": "성당 밖에서 발소리가 들린다. 여럿이다. 규칙적으로."
+        "message": "성당 밖에서 발소리가 들린다. 여럿이다. 규칙적으로. 찬송가 박자 같다."
       },
       {
         "turn": 20,
-        "message": "깨진 창문 너머로 형체들이 보인다. 움직임이 부자연스럽다.",
+        "message": "깨진 창문 너머로 형체들이 보인다. 움직임이 부자연스럽다. 관절이 너무 많다.",
         "effect": "san_check",
-        "loss": { "success": "0", "fail": "1d3" }
+        "loss": { "success": "1", "fail": "1d4" }
       },
       {
         "turn": 25,
-        "message": "문을 두드리는 소리가 시작됐다. 멈추지 않는다.",
+        "message": "문을 두드리는 소리가 시작됐다. 멈추지 않는다. 리듬이 있다.",
         "effect": "san_drain",
         "amount": 1
       },
       {
         "turn": 30,
-        "message": "문이 열린다.",
+        "message": "문이 열린다. 그들이 들어온다.",
         "effect": "force_combat",
         "enemy_id": "enemy_congregation",
         "result": "bad_ending_massacre"
       }
     ]
   },
+
   "locations": [
     {
       "id": "loc_entrance",
       "name": "성당 입구",
       "visible_from_start": true,
-      "description": "높은 천장, 부서진 긴 의자들, 바닥에 뒹구는 찬송가 책들. 먼지가 두텁게 쌓여 있다. 정면에 본당으로 이어지는 문이 열려 있다. 왼쪽 벽에 무언가 새겨져 있다. 오른쪽엔 좁은 계단이 지하로 내려간다.",
+      "description": "높은 천장, 부서진 긴 의자들, 바닥에 뒹구는 찬송가 책들. 먼지가 두텁게 쌓여 있다. 정면에 본당으로 이어지는 문이 열려 있다. 왼쪽 벽에 무언가 새겨져 있다. 오른쪽엔 좁은 계단이 지하로 내려간다. 공기가 차갑다. 안쪽이 바깥보다 차갑다.",
       "clues": [
         {
           "id": "clue_entrance_wall",
-          "text": "입구 왼쪽 벽 — 손톱으로 긁어낸 글씨. '1912년 10월 14일 밤, 종이 울렸다. 우리는 모두 내려갔다. 기쁨으로. 다시는 올라오지 않았다. — 목격자 E. Holt'\n그 아래 다른 필체로 덧붙여 있다. '그 전날 밤부터였다. 그들은 제단 앞에 무릎을 꿇고 새벽까지 기다렸다. 문양을 그리고, 말을 읊고, 그리고 나서야 종을 울렸다.'",
+          "text": "입구 왼쪽 벽 — 손톱으로 긁어낸 글씨. 여러 사람의 필체가 섞여 있다. '종을 울려라. 그들이 돌아올 것이다.' 그 아래, 더 작은 글씨로: '우리는 기다리고 있다.' 글씨는 거기서 끝난다.",
           "requires_check": false,
           "skill": null,
           "difficulty": null,
@@ -52,28 +61,29 @@
       "connections": ["loc_nave", "loc_crypt"],
       "npc": []
     },
+
     {
       "id": "loc_nave",
       "name": "본당",
       "visible_from_start": false,
-      "description": "제단이 정면에 있다. 제단 위에 낡은 종이 하나 놓여 있다. 크기에 비해 이곳에 있는 것이 어색하다. 제단 뒤 벽에 색 바랜 문자들이 새겨져 있다. 신도석 사이 바닥에 오래된 얼룩들이 보인다. 출입구는 왔던 방향뿐이다.",
+      "description": "제단이 정면에 있다. 제단 위에 낡은 종이 하나 놓여 있다. 오래된 교회 종치고는 작다. 제단 뒤 벽에 빼곡한 문자들이 새겨져 있다. 신도석 사이 바닥, 제단 앞에 오래된 얼룩들이 패턴을 이루고 있다. 무릎을 꿇은 자리들이다. 수십 개.",
       "clues": [
         {
           "id": "clue_nave_wall",
-          "text": "제단 뒤 벽의 문자 — 라틴어와 다른 언어가 섞여 있다. 읽을 수 있는 부분: '종은 경계를 연다. 소리가 닿는 곳까지. 우리는 준비됐다. 우리는 기다렸다. 우리는 갔다. 우리는 돌아올 것이다. 축복받은 자로서.' 문자 아래 서명들 — 수십 개. 모두 같은 날짜: 1912년 10월 14일.",
+          "text": "제단 뒤 벽의 문자 — 라틴어와 알 수 없는 언어가 섞여 있다. 읽을 수 있는 부분: '종이 우리를 구할 것이다. 종이 경계를 열 것이다. 우리는 돌아올 것이다 — 더 완전한 모습으로.' 문자 아래 서명들. 수십 개. 모두 같은 날짜: 1912년 10월 14일. 서명들 옆에, 누군가 다른 잉크로 덧붙였다: '우리는 준비했다. 문양을 그리고, 말을 읊고, 기다렸다.' 마지막 서명은 아이의 것이다. 글씨가 흔들린다.",
           "requires_check": false,
           "skill": null,
           "difficulty": null,
           "san_check": {
             "required": true,
-            "loss": { "success": "0", "fail": "1d3" },
-            "reason": "서명들 — 마지막 서명은 아이의 것이다. 글씨가 흔들린다."
+            "loss": { "success": "0", "fail": "1d4" },
+            "reason": "마지막 서명 — 아이의 것이다. 날짜가 같다. 아이도 그날 밤 갔다."
           },
           "revealed": false
         },
         {
           "id": "clue_nave_ritual_symbol",
-          "text": "제단 앞 바닥 — 무릎 꿇은 자국들 사이, 먼지 속에 반복적으로 그려진 기호가 있다. 손가락으로 그린 것 같다. 단순하지만 벽의 문자들과 같은 계통이다. 누군가 이 문양을 그리고 종 앞에 무릎을 꿇었다.",
+          "text": "제단 앞 바닥 — 무릎 꿇은 자국들 사이 먼지 속에 반복적으로 그려진 기호가 있다. 손가락으로 그린 것 같다. 단순하지만 벽의 문자들과 같은 계통이다. 종을 울리기 전에 이 문양을 그렸다.",
           "requires_check": true,
           "skill": "발견",
           "difficulty": "normal",
@@ -87,24 +97,18 @@
           "requires_check": true,
           "skill": "발견",
           "difficulty": "normal",
-          "san_check": { "required": false },
-          "revealed": false
-        },
-        {
-          "id": "clue_crypt_ritual_words",
-          "text": "납골당 석관 하나의 측면 — 다른 석관과 달리 문자가 새겨져 있다. 반복되는 짧은 구절: 'Aperire. Venire. Accipere.' 라틴어다. '열어라. 오라. 받아들여라.' 아래에 한글로 번역이 덧붙여 있다. 누군가 나중에 왔던 사람이 적어놓은 것 같다.",
-          "requires_check": true,
-          "skill": "발견",
-          "difficulty": "normal",
-          "ritual_component": "words",
-          "san_check": { "required": false },
+          "san_check": {
+            "required": true,
+            "loss": { "success": "0", "fail": "1d3" },
+            "reason": "1922년 9월 — 농가 주민들이 실종된 것은 사흘 전이다."
+          },
           "revealed": false
         }
       ],
       "san_check": {
         "required": true,
-        "loss": { "success": "0", "fail": "1d2" },
-        "reason": "제단 앞 바닥의 얼룩들 — 오래됐지만 패턴이 있다. 무릎을 꿇은 자리들이다. 수십 개."
+        "loss": { "success": "0", "fail": "1d3" },
+        "reason": "제단 앞 바닥의 얼룩들 — 오래됐지만 패턴이 있다. 무릎을 꿇은 자리들이다. 수십 개. 모두 같은 방향을 향하고 있다."
       },
       "connections": ["loc_entrance"],
       "npc": [],
@@ -115,34 +119,55 @@
           "description": "제단 위의 종.",
           "actions": [
             {
-              "action": "종을 울린다 (준비 의식 완료)",
+              "action": "문양을 그리고 문구를 읊은 뒤 종을 울린다",
               "requires_ritual": ["clue_nave_ritual_symbol", "clue_crypt_ritual_words"],
               "trigger_ending": "ending_congregation",
               "san_check": {
                 "required": true,
-                "loss": { "success": "1d3", "fail": "1d6" },
-                "reason": "종소리가 성당 전체에 울려퍼진다. 지하에서 응답이 온다."
+                "loss": { "success": "1d4", "fail": "1d8" },
+                "reason": "종소리가 울려퍼진다. 지하에서, 밖에서, 벽 안에서 응답이 온다."
               }
             },
             {
-              "action": "종을 그냥 울린다",
+              "action": "종을 울린다",
               "requires_ritual": [],
               "result": "no_effect",
-              "narrative_hint": "종소리가 울린다. 먼지가 떨어진다. 아무 일도 일어나지 않는다. 무언가 빠진 것 같은 느낌."
+              "narrative_hint": "종소리가 성당을 채운다. 먼지가 떨어진다. 잠시 후 조용해진다. 아무 일도 일어나지 않는다. 무언가 빠진 것 같은 느낌이 든다."
+            },
+            {
+              "action": "종을 파괴한다",
+              "requires_ritual": [],
+              "trigger_ending": "ending_ruin",
+              "san_check": {
+                "required": true,
+                "loss": { "success": "1d4", "fail": "1d10" },
+                "reason": "종이 부서지는 순간 — 아래에서, 벽 안에서, 공기 속에서 무언가 깨어난다."
+              }
             }
           ]
         }
       ]
     },
+
     {
       "id": "loc_crypt",
       "name": "지하 납골당",
       "visible_from_start": false,
-      "description": "계단을 내려가면 좁은 통로가 나온다. 양쪽에 석관들이 늘어서 있다. 끝에 작은 방이 있다. 방 중앙에 제단과 다른 형태의 봉인된 석판이 있다. 석판 위에 낡은 가죽 일기장이 놓여 있다. 벽에 글씨가 새겨져 있다.",
+      "description": "계단을 내려가면 좁은 통로가 나온다. 양쪽에 석관들이 늘어서 있다. 뚜껑이 안쪽에서 긁힌 흔적이 있다. 모든 석관이. 끝에 작은 방이 있다. 방 한쪽 벽에 글씨가 새겨져 있다. 석관 하나에 문자가 새겨져 있다. 방 구석에 낡은 가죽 가방이 있다.",
       "clues": [
         {
+          "id": "clue_crypt_ritual_words",
+          "text": "석관 측면의 문자 — 다른 석관과 달리 이름이 없다. 반복되는 짧은 구절: 'Aperire. Venire. Accipere.' 라틴어다. '열어라. 오라. 받아들여라.' 아래에 누군가 영어로 번역을 덧붙였다. 최근 필체다.",
+          "requires_check": true,
+          "skill": "발견",
+          "difficulty": "normal",
+          "ritual_component": "words",
+          "san_check": { "required": false },
+          "revealed": false
+        },
+        {
           "id": "clue_crypt_wall",
-          "text": "납골당 벽의 글씨 — 신부의 필체로 보인다. 단정하고 작다. '종을 파괴하라. 불로. 소리가 없으면 경계도 없다. 나는 30년간 시도했다. 종은 타지 않았다. 다음 사람에게 부탁한다. — 신부 A. Marsh, 1918년'",
+          "text": "벽의 글씨 — 신부의 필체로 보인다. 단정하고 작다. '종을 파괴하라. 그것이 유일한 방법이다. 소리가 없으면 경계도 없다. — 신부 A. Marsh'",
           "requires_check": false,
           "skill": null,
           "difficulty": null,
@@ -151,14 +176,14 @@
         },
         {
           "id": "clue_crypt_diary",
-          "text": "신부의 일기 — 마지막 페이지. '나는 틀렸다. 종을 파괴하면 그것이 풀린다는 것을 이제 안다. 신도들은 알고 있었다. 그들은 원했다. 나만 몰랐다. 종을 울려도 파괴해도 결과는 같다. 다만 방법이 다를 뿐. 가라. 아무것도 하지 말고 가라. 그것은 네가 건드리길 기다리고 있다.'",
+          "text": "가방 안의 일기 — 신부 A. Marsh의 것이다. 마지막 페이지. '종을 파괴해야 한다는 것을 안다. 오래 알고 있었다. 그러나 손이 움직이지 않는다. 두려운 것인지 죄스러운 것인지 모르겠다. 신도들이 원했던 것이다. 그들의 선택이었다. 나는 결국 하지 못했다. 나는 떠난다. 다음 사람이 나보다 현명하거나, 나보다 용감하길.'",
           "requires_check": true,
           "skill": "발견",
           "difficulty": "hard",
           "san_check": {
             "required": true,
-            "loss": { "success": "1", "fail": "1d4" },
-            "reason": "일기의 마지막 문장 아래 — 같은 글씨로, 다른 잉크로 덧쓰여 있다. '나도 갔다.'"
+            "loss": { "success": "1", "fail": "1d6" },
+            "reason": "일기 마지막 줄 아래 — 다른 손으로, 다른 잉크로 한 줄이 덧붙여 있다. '신부님도 결국 오셨습니다.'"
           },
           "revealed": false
         }
@@ -166,63 +191,46 @@
       "san_check": {
         "required": true,
         "loss": { "success": "1", "fail": "1d6" },
-        "reason": "석관들 — 뚜껑이 안쪽에서 긁힌 흔적이 있다. 모든 석관이."
+        "reason": "석관들 — 뚜껑이 안쪽에서 긁힌 흔적이 있다. 모든 석관이. 나가려 했던 것이 아니라 — 들어가려 했던 흔적이다."
       },
       "connections": ["loc_entrance"],
-      "npc": [],
-      "interactable": [
-        {
-          "id": "interact_slab",
-          "name": "봉인된 석판",
-          "description": "중앙의 석판. 표면에 기호들이 새겨져 있다. 건드리면 어떤 일이 벌어질지 모른다.",
-          "action": "석판을 파괴한다",
-          "trigger_ending": "ending_ruin",
-          "san_check": {
-            "required": true,
-            "loss": { "success": "1d3", "fail": "1d8" },
-            "reason": "석판이 갈라지는 순간 — 아래에서 무언가 올라온다. 소리가 아니다. 공백이다."
-          }
-        }
-      ]
+      "npc": []
     }
   ],
+
   "endings": {
+    "insanity": {
+      "id": "insanity",
+      "title": "탐사자는 돌아오지 않았다",
+      "text": "종소리가 아직도 들린다. 멈추지 않는다. 성당 밖에 나온 것인지 확신할 수 없다. 벽이 숨쉬고 있다. 항상 그랬다. 이상한 것이 아니다. 당신은 웃고 있다. 멈출 수 없다. 아무도 이상하게 생각하지 않는다. 당신 주변에 있는 그들도 똑같이 웃고 있다."
+    },
     "ending_congregation": {
       "id": "ending_congregation",
       "title": "축복",
-      "trigger": "종을 울렸을 때",
-      "text": "종소리가 멎었다. 성당 밖의 발소리가 멈췄다. 문이 천천히 열린다. 그들이 들어온다. 얼굴이 있다. 눈도 있다. 다만 그 안에 있어야 할 것이 없다. 당신을 향해 손을 내민다. 당신은 그 손을 잡는다. 기쁨으로. 아캄 외곽 성당 인근 주민 전원 실종. 수사 종결.",
-      "san_final": "0",
-      "note": "마을사람들의 방법. 축복받은 자로서 함께 간다."
+      "text": "종소리가 멎었다. 성당 밖의 발소리가 멈췄다. 그리고 문이 열린다. 그들이 들어온다. 얼굴이 있다. 눈도 있다. 웃고 있다. 다만 그 안에 있어야 할 것이 없다. 당신을 향해 손을 내민다. 따뜻하다. 당신은 그 손을 잡는다. 기쁨이 차오른다. 멈출 수 없다. 아캄 외곽 성당 인근 실종자 1명 추가. 수사 종결.",
+      "san_final": 0,
+      "mythos_gain": 8
     },
     "ending_ruin": {
       "id": "ending_ruin",
-      "title": "붕괴",
-      "trigger": "석판을 파괴했을 때",
-      "text": "천장이 무너지기 시작한다. 당신은 달린다. 계단, 본당, 입구. 마지막 순간 문 밖으로 몸을 던진다. 성당이 무너진다. 당신은 살았다. 왼손을 보면 — 손가락 세 개가 없다. 언제 잘렸는지 모른다. 고통도 없다. 지금도 없다. 앞으로도 없을 것 같다.",
-      "injury": "왼손 손가락 세 개 영구 손실 (근접전투 -20%, 발견 -10%)",
-      "note": "신부의 방법. 파괴하면 풀린다. 신부도 알고 있었다."
+      "title": "강림",
+      "text": "종이 부서졌다. 그리고 무언가 왔다. 당신은 달렸다. 계단, 본당, 입구, 밖. 뒤를 돌아보지 않았다. 돌아봤다면 달리지 못했을 것이다. 성당이 무너졌다. 아캄에서도 불빛이 보였다고 한다. 당신은 살았다. 왼손이 없다. 언제 잘렸는지 모른다. 고통이 없다. 앞으로도 없을 것 같다. 그 일대 주민 전원 실종. 원인 불명.",
+      "injury": "왼손 영구 손실 (근접전투 불가, 발견 -20%)",
+      "mythos_gain": 5
     },
     "ending_escape": {
       "id": "ending_escape",
-      "trigger": "clue_crypt_diary 수집 후 아무것도 하지 않고 loc_entrance에서 탈출",
       "title": "침묵",
-      "text": "당신은 아무것도 건드리지 않았다. 종도, 석판도. 성당을 나왔다. 밖에 아무도 없다. 발자국만 있다. 수십 개. 성당을 향하고 있다. 당신은 반대 방향으로 걷는다. 뒤를 돌아보지 않는다. 성당은 조용하다. 그것도 조용하다. 오늘은.",
-      "note": "시크릿 엔딩. 일기를 읽고 아무것도 하지 않은 자만 볼 수 있다."
-    },
-    "bad_ending_time": {
-      "id": "bad_ending_time",
-      "trigger": "turn_limit 초과",
-      "title": "귀환",
-      "text": "문이 열렸다. 그들이 들어왔다. 당신은 맞섰다. 또는 도망쳤다. 중요하지 않다. 아침이 됐다. 성당은 비어있다. 당신도 비어있다. 아캄으로 돌아가는 길을 걷는다. 발걸음이 가볍다. 어제보다 가볍다. 무언가 없어진 것 같지만 — 그게 무엇인지 기억이 나지 않는다."
+      "text": "당신은 아무것도 건드리지 않았다. 종도. 성당을 나왔다. 밖에 아무도 없다. 발자국만 있다. 수십 개. 성당을 향하고 있다. 당신은 반대 방향으로 걷는다. 뒤를 돌아보지 않는다. 성당은 조용하다. 그것도 조용하다. 오늘은.",
+      "note": "시크릿 엔딩. 신부 일기를 읽고 아무것도 하지 않은 자만."
     },
     "bad_ending_massacre": {
       "id": "bad_ending_massacre",
-      "trigger": "30턴 강제 전투 패배",
       "title": "합류",
       "text": "싸웠다. 이길 수 없었다. 그들의 손이 당신을 잡는다. 차갑지 않다. 따뜻하다. 그것이 더 나쁘다. 당신은 웃고 있다. 멈출 수 없다. 아캄 외곽 성당 인근 실종자 1명 추가. 수사 종결."
     }
   },
+
   "ending": {
     "conditions": [
       {
@@ -232,51 +240,47 @@
         "description": "신부 일기 수집 시 시크릿 탈출 가능 상태"
       },
       {
-        "type": "location_reached",
-        "location_id": "loc_entrance",
-        "requires_state": "secret_escape_available",
-        "result": "ending_escape",
-        "description": "일기 확보 후 아무것도 하지 않고 입구로 복귀 시 시크릿 엔딩"
-      },
-      {
         "type": "interaction",
         "interaction_id": "interact_bell",
+        "action": "문양을 그리고 문구를 읊은 뒤 종을 울린다",
         "requires_clues": ["clue_nave_ritual_symbol", "clue_crypt_ritual_words"],
-        "result": "ending_congregation",
-        "description": "의식 단서 2개 수집 후 종 울리기 → 축복 엔딩"
+        "result": "ending_congregation"
       },
       {
         "type": "interaction",
         "interaction_id": "interact_bell",
-        "requires_clues": [],
+        "action": "종을 울린다",
         "excludes_clues": ["clue_nave_ritual_symbol", "clue_crypt_ritual_words"],
-        "result": "no_effect",
-        "description": "의식 없이 그냥 종 울리기 → 아무 반응 없음"
+        "result": "no_effect"
       },
       {
         "type": "interaction",
-        "interaction_id": "interact_slab",
+        "interaction_id": "interact_bell",
+        "action": "종을 파괴한다",
         "result": "ending_ruin"
       },
       {
         "type": "turn_limit",
         "max_turns": 30,
-        "result": "bad_ending_massacre",
-        "description": "30턴 — 신도들이 들어온다"
+        "result": "bad_ending_massacre"
       }
     ],
     "good": "ending_escape",
     "bad": "bad_ending_massacre"
   },
+
   "enemies": [
     {
       "id": "enemy_congregation",
       "name": "귀환한 신도",
-      "description": "인간의 형태. 다만 움직임이 맞지 않는다. 관절이 너무 많다.",
+      "description": "인간의 형태다. 웃고 있다. 관절이 너무 많다. 눈 안에 아무것도 없다.",
       "maxHp": 6,
       "attack": "1d3",
       "count": 3,
-      "spawn_condition": "30턴 초과 시 loc_entrance에 강제 등장"
+      "spawn_condition": "30턴 초과 시 loc_entrance 강제 등장",
+      "san_check_on_sight": {
+        "loss": { "success": "1d3", "fail": "1d6" }
+      }
     }
   ]
 }

@@ -60,7 +60,12 @@ ${allLocations}
 ## 시나리오에 존재하는 단서 (전부)
 ${allClues}
 
-${escapeAvailable ? `## 탈출 가능 상태\n탐사자가 충분한 단서를 확보했다. 탐사자가 탈출하려는 행동을 취하면 trigger_ending: "${scenario.ending?.good ?? 'good_ending'}"을 반환하십시오.\n\n` : ''}## 세계관 제약 (절대 준수)
+${scenario.keeper_notes ? `## 키퍼 지침\n${Object.entries(scenario.keeper_notes).map(([, v]) => v).join('\n')}\n\n` : ''}## 탈출
+${escapeAvailable
+  ? `탐사자가 시나리오 무대 밖으로 완전히 떠나려는 행동을 취하면 trigger_ending: "${scenario.ending?.good ?? 'good_ending'}"을 반환하십시오. 탈출 가능 여부를 탐사자에게 직접 언급하지 마십시오.`
+  : `탐사자가 시나리오 무대를 벗어나 탈출하려 하면 자연스럽게 막으십시오. 탐사자는 아직 목표를 달성하지 못했습니다${scenario.goal_hint ? ` (목표: ${scenario.goal_hint})` : ''}. 이 맥락에 맞는 탐사자 내면의 이유로 막으십시오. trigger_ending을 반환하지 마십시오.`}
+
+## 세계관 제약 (절대 준수)
 - 위 목록에 없는 장소는 존재하지 않습니다. 새로운 방, 건물, 지역을 창작하지 마십시오.
 - 위 목록에 없는 단서, 문서, NPC, 사건을 즉흥으로 만들지 마십시오.
 - 탐사자가 목록 외 장소로 가려 한다면 "갈 수 없다"는 묘사로 자연스럽게 막으십시오.
@@ -104,6 +109,7 @@ ${insanityStatus ? `광기 상태:\n${insanityStatus}` : '광기 없음'}${insan
 - 탐사자가 인터랙션 가능 요소의 action을 실행할 때 해당 trigger_ending 값을 반환하십시오.
 - trigger_ending 반환 시 san_check도 해당 요소의 분위기에 맞게 함께 반환하십시오.
 - 인터랙션 가능 요소의 action을 선택지로 먼저 제시하지 마십시오. 탐사자가 자유 입력 또는 자연스러운 행동으로 직접 시도할 때만 발동하십시오.
+- [선행 조건 미충족]인 action을 탐사자가 시도하면: trigger_ending을 반환하지 말고, 의식이 불완전하게 실행됐다는 묘사(아무 일도 일어나지 않거나 뭔가 빠진 느낌)만 반환하십시오.
 
 **combat_start: true를 반드시 반환해야 하는 경우:**
 - 탐사자가 적대적 존재를 직접 공격할 때

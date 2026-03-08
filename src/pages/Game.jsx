@@ -129,7 +129,6 @@ export default function Game() {
       const cluesCond = conditions.find(c => c.type === 'clues_collected')
       if (cluesCond?.required.every(id => clues.includes(id))) {
         setEscapeAvailable(true)
-        addLog('system', '[단서 확보] 충분한 단서를 손에 쥐었다. 이제 빠져나갈 수 있다.')
       }
     }
     // 탈출 엔딩은 AI trigger_ending 방식으로 처리
