@@ -173,9 +173,13 @@ export default function CharacterCreate() {
                   onSet={v => setOcc(sk, v)} />
               ))}
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <button onClick={() => setStep(2)} className="text-sm text-dust hover:text-parchment px-4 py-2">← 이전</button>
-              <button onClick={() => setStep(4)} disabled={occLeft > 0} className="text-sm border border-blood px-6 py-2 text-blood hover:bg-blood hover:text-parchment disabled:opacity-30 disabled:cursor-not-allowed transition-colors">다음 →</button>
+              {occLeft > 0
+                ? <button onClick={() => { if (window.confirm(`직업 포인트 ${occLeft}pt가 남아 있습니다. 그냥 넘어가시겠습니까?`)) setStep(4) }}
+                    className="text-sm border border-dust px-6 py-2 text-dust hover:text-parchment hover:border-parchment/30 transition-colors">다음 →</button>
+                : <button onClick={() => setStep(4)} className="text-sm border border-blood px-6 py-2 text-blood hover:bg-blood hover:text-parchment transition-colors">다음 →</button>
+              }
             </div>
           </div>
         )}
@@ -196,9 +200,13 @@ export default function CharacterCreate() {
                   onSet={v => setInt(sk, v)} />
               ))}
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <button onClick={() => setStep(3)} className="text-sm text-dust hover:text-parchment px-4 py-2">← 이전</button>
-              <button onClick={() => setStep(5)} disabled={intLeft > 0} className="text-sm border border-blood px-6 py-2 text-blood hover:bg-blood hover:text-parchment disabled:opacity-30 disabled:cursor-not-allowed transition-colors">다음 →</button>
+              {intLeft > 0
+                ? <button onClick={() => { if (window.confirm(`개인관심 포인트 ${intLeft}pt가 남아 있습니다. 그냥 넘어가시겠습니까?`)) setStep(5) }}
+                    className="text-sm border border-dust px-6 py-2 text-dust hover:text-parchment hover:border-parchment/30 transition-colors">다음 →</button>
+                : <button onClick={() => setStep(5)} className="text-sm border border-blood px-6 py-2 text-blood hover:bg-blood hover:text-parchment transition-colors">다음 →</button>
+              }
             </div>
           </div>
         )}
