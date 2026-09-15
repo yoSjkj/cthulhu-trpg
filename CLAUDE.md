@@ -6,7 +6,7 @@ Call of Cthulhu 7판 룰 기반 솔로 플레이 TRPG. React + Vite PWA.
 ## 최우선 규칙
 
 1. **룰 수치는 `docs/game-rules.md`만 참조한다.**
-   `CoC_PWA_기획안.md`에는 오류가 있다. 참조 금지.
+   `design.md`는 설계 의도만 담는다. 룰 수치·스키마의 근거로 쓰지 않는다.
    문서에 없는 룰은 추측하지 말고 사용자에게 묻는다.
 2. **`docs/game-rules.md`를 수정하지 않는다.** 사용자만 수정한다.
 3. **코드 수정 전 테스트를 먼저 작성한다.**
@@ -25,6 +25,7 @@ Call of Cthulhu 7판 룰 기반 솔로 플레이 TRPG. React + Vite PWA.
 
 | 파일 | 내용 |
 |---|---|
+| `design.md` | 기획 의도, 게임 흐름. 룰 수치 없음 |
 | `docs/game-rules.md` | 룰 정답표. 수정 금지 |
 | `docs/tone.md` | 키퍼 문체 기준 |
 | `docs/architecture.md` | 데이터 흐름, 역할 분리 |
