@@ -33,7 +33,7 @@ describe('BUILD — 백로그 1-3 필수 경계값', () => {
 
 describe('DB / BUILD — 2단계에서 해제할 케이스', () => {
   // 2-4: DB 표가 한 칸씩 밀려 있다. 65~84가 '0', 85~124가 '1d4'를 반환한다.
-  it.skip('[2-4] DB 표 경계값', () => {
+  it('[2-4] DB 표 경계값', () => {
     expect(derivedFor(14, 50).DB).toBe('-2')  // 64
     expect(derivedFor(15, 50).DB).toBe('-1')  // 65
     expect(derivedFor(34, 50).DB).toBe('-1')  // 84
@@ -47,7 +47,7 @@ describe('DB / BUILD — 2단계에서 해제할 케이스', () => {
   })
 
   // 2-4: 205~284 구간이 없어 BUILD가 2에 머문다.
-  it.skip('[2-4] STR+SIZ 205 이상은 BUILD 3', () => {
+  it('[2-4] STR+SIZ 205 이상은 BUILD 3', () => {
     expect(derivedFor(155, 50).BUILD).toBe(3) // 205
     expect(derivedFor(184, 100).BUILD).toBe(3) // 284
   })

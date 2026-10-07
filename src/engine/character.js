@@ -1,13 +1,16 @@
 import { roll3d6x5, roll } from './dice.js'
 
-// DB/BUILD 계산표 (CoC 7판)
+// DB/BUILD 계산표 — game-rules.md "DB / BUILD" 표와 1:1 대응
+//   2~64 -2/-2 | 65~84 -1/-1 | 85~124 0/0 | 125~164 1d4/1 | 165~204 1d6/2 | 205~284 2d6/3
+// DB는 항상 문자열로 저장한다. (game-rules.md)
 function calcDBAndBuild(str, siz) {
   const total = str + siz
   if (total <= 64)  return { db: '-2',  build: -2 }
-  if (total <= 84)  return { db: '0',   build: -1 }
-  if (total <= 124) return { db: '1d4', build: 0  }
-  if (total <= 164) return { db: '1d6', build: 1  }
-  return              { db: '2d6', build: 2  }
+  if (total <= 84)  return { db: '-1',  build: -1 }
+  if (total <= 124) return { db: '0',   build: 0  }
+  if (total <= 164) return { db: '1d4', build: 1  }
+  if (total <= 204) return { db: '1d6', build: 2  }
+  return              { db: '2d6', build: 3  }
 }
 
 // 8개 능력치 + LUCK 굴림
