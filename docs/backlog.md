@@ -14,6 +14,16 @@
 
 완료한 항목은 `#` 칸에 ✅를 붙인다. (예: `✅ 0-2`)
 
+## 진행 상황 (2026-10-07, 커밋 `6b8e035`)
+
+**22 / 59 완료 (37.3%)** — 0단계 5개(0-1~0-5), 1단계 3개(1-1~1-3), 2단계 14개(2-1~2-14).
+(세는 법: `grep -c '^| ✅' docs/backlog.md`)
+테스트 **86개 통과 / 스킵 0개**, 빌드 통과.
+
+**다음 작업: 2-15 ~ 2-17** (`CharacterCreate.jsx` 묶음, 2단계의 마지막).
+A안(배분 규칙을 `engine/`으로 추출)으로 결정됐다.
+→ 2단계 끝의 **"🔖 인수인계 — 2-15 ~ 2-17"** 블록을 먼저 읽을 것. 재현 경로와 모듈 설계가 들어 있다.
+
 ---
 
 ## 0단계 · 문서 정비
@@ -50,7 +60,15 @@
 현재 스킵된 19개가 2-1 ~ 2-10, 2-12 ~ 2-14를 덮는다.
 2-11(`permanentInsanity` 처리)은 미결정이라 테스트가 없었다. 2026-10-07에 **제거**로 정하고
 착수 시점에 테스트를 썼다.
-2-15 ~ 2-17은 `CharacterCreate.jsx`로 `engine/` 범위가 아니다.
+2-15 ~ 2-17은 `CharacterCreate.jsx`라 1-3 시점에 테스트를 쓰지 않았다.
+**2026-10-07에 배분 규칙을 `engine/`으로 추출하기로 결정(A안)했으므로 테스트가 가능해진다.**
+→ 아래 "🔖 인수인계 — 2-15 ~ 2-17" 블록 참조.
+
+**2026-10-07 현재 스킵 0개.** 2단계 엔진 항목(2-1 ~ 2-14)의 테스트는 모두 해제됐다.
+1-3이 미리 깔아둔 테스트 중 **둘은 버그를 구분하지 못해 수치를 고쳐야 했다.**
+해제했는데 바로 초록이면 테스트를 의심할 것.
+- `[2-9]`: 누적 10이 수정 전(임계값 8)·후(10) 모두 발동 → 누적 8로 조정
+- `[2-14]`의 대문자 DB: `parseInt('1D4')`와 최소 굴림 `1d4`가 둘 다 1이라 우연히 통과 → 최대 굴림으로 고정
 
 **1-3 필수 테스트 케이스**
 
@@ -146,6 +164,131 @@ throw를 고른 이유: AI가 돌려주는 `hp_loss.formula`는 `Game.jsx` 199�
 | 2-15 | `adjustOcc`·`setOcc`의 90% 상한 검사가 `intAlloc`을 무시. 4단계에서 배분 후 3단계로 돌아오면 합계 90 초과 가능 | `getSkillValue` 기준으로 검사 |
 | 2-16 | 재굴림 시 `occAlloc`·`intAlloc`이 초기화되지 않음. EDU/INT가 낮아지면 남은 포인트가 음수인 채로 게임 시작 가능 | `handleReroll`에서 배분 초기화 |
 | 2-17 | `occPoints`를 `abilities.EDU * 4`로 직접 계산. `OCCUPATIONS.pointsFormula` 미사용 | `pointsFormula` 사용 |
+
+---
+
+## 🔖 인수인계 — 2-15 ~ 2-17 (A안 결정, 2026-10-07)
+
+**이 블록은 다음 세션이 조사를 반복하지 않도록 쓴 것이다. 착수 전에 전부 읽을 것.**
+아래 행·수치는 커밋 `6b8e035` 기준으로 확인했다.
+
+### 왜 단순 수정이 아닌가
+
+세 항목이 건드리는 수치가 **전부 룰**이다. `game-rules.md` 61~63행:
+
+```
+- 직업 포인트 = EDU × 4 (직업 기술에만)
+- 개인관심 포인트 = INT × 2 (전 기술)
+- 1% 단위, 상한 90% [하우스룰]
+```
+
+이 세 줄이 `CharacterCreate.jsx`에 하드코딩돼 있다. `CLAUDE.md`는 룰 계산을 `engine/`에 두라고 정하므로
+**지금 위치 자체가 아키텍처 위반**이다. 그리고 컴포넌트에는 테스트 수단이 없다
+(`jsdom`·`@testing-library/react` 미설치, 현재 테스트 86개는 전부 `engine/` 순수 함수).
+따라서 제자리에서 고치면 `CLAUDE.md` 3번(테스트 선작성)을 지킬 수 없다.
+
+**검토한 선택지:** A) 배분 규칙을 `engine/`으로 추출 B) 컴포넌트 테스트 인프라 추가 C) 테스트 없이 수정.
+**사용자가 A로 결정했다.** B는 룰 테스트가 렌더링에 묶이고, C는 명시적 위반이다.
+
+### 상한 `90`은 3곳이 아니라 6곳이다
+
+| 행 | 코드 | 상태 |
+|---|---|---|
+| 37 | `(baseSkills[sk] ?? 0) + newExtra > 90` (`adjustOcc`) | ❌ `intAlloc` 누락 |
+| 46 | `getSkillValue(sk) + delta > 90` (`adjustInt`) | ✅ |
+| 53 | `Math.min(currentAlloc + occLeft, 90 - b)` (`setOcc`) | ❌ `intAlloc` 누락 |
+| 61 | `Math.min(currentAlloc + intLeft, 90 - minVal)` (`setInt`) | ✅ |
+| 172 | `canPlus={occLeft > 0 && getSkillValue(sk) < 90}` (UI) | ✅ |
+| 199 | `canPlus={intLeft > 0 && getSkillValue(sk) < 90}` (UI) | ✅ |
+
+같은 룰이 6곳에 흩어져 **2곳만 틀렸다.** 추출의 목적은 "`getSkillValue` 기준으로 바꾸기"가 아니라
+**상한이 한 곳에만 존재하게 만들어 이 종류의 불일치가 다시 생기지 못하게 하는 것**이다.
+
+### 2-15 재현 경로 (UI + 버튼으로는 재현되지 않는다)
+
+172행의 `canPlus`가 `getSkillValue` 기준이라 **＋ 버튼은 이미 막혀 있다.**
+살아 있는 경로는 **직접 숫자 입력**이다. `SkillRow`에 `type="number"` 입력이 있고
+(299~307행) `commitInput` → `onSet` → `setOcc`(53행)로 들어간다.
+
+1. 직업 `탐정` 선택 (`심리학` 기본값 10, 직업 기술에 포함)
+2. 3단계에서 `심리학`에 직업 포인트 50 배분 → 표시값 60
+3. 4단계에서 `심리학`에 개인관심 30 배분 → 표시값 90 (여기까지는 정상)
+4. 3단계로 돌아가 `심리학` 숫자를 클릭해 `90` 입력
+5. `setOcc`: `b=10`, `maxAlloc = min(50+occLeft, 90-10=80)` → `occAlloc = 80`
+6. 결과 `getSkillValue = 10 + 80 + 30 = 120` — **상한 90을 30 초과**
+
+추출 후 이 시나리오를 그대로 테스트로 옮길 것.
+`setOcc`는 `targetValue - b`를 쓰는데, 입력값은 `intAlloc`이 포함된 **표시 총합**이므로
+기준점도 `base + 다른 풀`이어야 한다. 즉 53행은 상한과 기준점 **둘 다** 틀렸다.
+
+### 2-16 재현 경로
+
+3단계 `← 이전`(177행) → 2단계 `← 이전`(151행) → 1단계 `전체 재굴림`(121행).
+`handleReroll`(66~71행)은 `abilities`와 `rerollsLeft`만 바꾸고 `occAlloc`·`intAlloc`을 그대로 둔다.
+EDU/INT가 낮아지면 `occLeft`·`intLeft`가 **음수**가 되고 그 상태로 게임 시작이 가능하다.
+
+**고칠 패턴이 이미 파일 안에 있다.** `handleOccupationSelect`(73~77행)는 두 배분을 모두 초기화한다.
+`handleReroll`에 같은 초기화를 넣으면 된다. 이 항목은 순수 컴포넌트 상태라 **엔진 함수가 필요 없다.**
+
+### 제안 모듈 — `src/engine/skillAllocation.js`
+
+네 호출부(`adjustOcc`·`adjustInt`·`setOcc`·`setInt`)가 **하나의 함수로 전부 환원된다.**
+검산해봤다. `setInt`(58~61행)와 수식이 정확히 일치하고, `setOcc`는 이 함수를 쓰면 버그가 사라진다.
+
+```js
+export const SKILL_CAP = 90   // game-rules.md 63행 [하우스룰]
+
+// 한 기술에 이 풀로 배분할 양을 계산한다.
+//   base        기본 기술치
+//   otherAlloc  다른 풀이 이미 넣은 양 (직업 계산 시 intAlloc, 개인관심 계산 시 occAlloc)
+//   currentAlloc 이 풀이 지금 넣은 양
+//   pointsLeft  이 풀의 남은 포인트
+//   targetValue 원하는 최종 표시값
+export function allocate({ base, otherAlloc, currentAlloc, pointsLeft, targetValue }) {
+  const floor = base + otherAlloc                               // 이 풀로는 더 내릴 수 없는 하한
+  const maxAlloc = Math.min(currentAlloc + pointsLeft, SKILL_CAP - floor)
+  return Math.max(0, Math.min(targetValue - floor, maxAlloc))
+}
+```
+
+- `±` 버튼은 `targetValue = 현재표시값 + delta`로 호출하면 그대로 환원된다. (`target - floor = currentAlloc + delta`)
+- 직접 입력은 `targetValue = 입력값`.
+
+**검산에서 나온 차이 하나.** 원본 `adjustOcc`·`adjustInt`는 한계를 넘으면 `return`으로 **거절**하는데
+제안 함수는 **클램프**한다. `delta`가 `±1`인 한 결과가 같다는 것을 확인했다.
+
+- 상한에 닿은 상태에서 `+1` → `maxAlloc`이 `currentAlloc`이 되어 변화 없음 (거절과 동일)
+- 남은 포인트 0에서 `+1` → `min(currentAlloc + 0, …)` = `currentAlloc`, 변화 없음
+- `currentAlloc = 0`에서 `-1` → `max(0, -1)` = `0`, 변화 없음
+
+UI는 `±1`만 쓰므로(길게 누르기도 `+1` 반복) 안전하다. **`delta`를 2 이상으로 쓸 일이 생기면
+거절과 클램프가 갈린다**는 점만 기억할 것. 그때는 호출부가 어느 쪽을 원하는지 정해야 한다.
+- 포인트 공식도 같이 옮긴다: `occupationPoints(occupationKey, EDU)`는
+  **`OCCUPATIONS[key].pointsFormula(EDU)`를 사용**해야 한다 (2-17). `interestPoints(INT)`는 `INT * 2`.
+
+### 착수 전 알아둘 함정 셋
+
+1. **`occupation`이 `null`인 구간이 있다.** 23행 `occPoints`는 1·2단계에서도 무조건 계산된다.
+   `occupationPoints`가 `null`을 받으면 `0`을 돌려줄지 throw할지 정해야 한다.
+   2-13에서 "조용한 0"의 대가를 봤으니 **호출부에서 가드하고 함수는 엄격하게** 가는 쪽을 권한다.
+2. **표시 문구에도 공식이 박혀 있다.** 167행 `EDU({abilities.EDU}) × 4 = {occPoints}pt`,
+   194행 `INT({abilities.INT}) × 2 = {intPoints}pt`.
+   `pointsFormula`는 직업별로 다를 수 있는 설계인데(현재는 6직업 전부 `edu * 4`) 문구는 `× 4`로 고정이다.
+   지금은 거짓말이 아니지만 직업별 공식이 갈리는 순간 거짓이 된다. 문구를 유도할지 그대로 둘지 판단할 것.
+3. **`calcDerived`가 두 번 다른 인자로 불린다.** 19행은 `calcDerived(abilities)`로 `skills` 없이 호출해
+   미리보기를 만든다. 그래서 **미리보기 SAN은 2-12의 maxSAN 클램프를 반영하지 않는다.**
+   크툴루신화에 포인트를 배분하면 미리보기 SAN(=POW)과 실제 캐릭터 SAN(=maxSAN)이 어긋난다.
+   2-15~2-17 범위는 아니지만 같은 파일이므로 함께 처리할지 판단할 것. 처리하지 않으면 별 항목으로 적을 것.
+
+### 작업 순서 제안
+
+1. `skillAllocation.js` + `skillAllocation.test.js` 작성. 테스트에 위 2-15 재현 시나리오를 넣는다. → 커밋 (2-15)
+2. `CharacterCreate.jsx`의 네 함수를 `allocate` 호출로 교체. 90 리터럴은 `SKILL_CAP`만 남긴다. → 같은 2-15 커밋에 포함
+3. `handleReroll`에 배분 초기화. → 커밋 (2-16)
+4. `occPoints`/`intPoints`를 `occupationPoints`/`interestPoints`로 교체. → 커밋 (2-17)
+5. `docs/architecture.md`에 새 모듈 한 줄 추가.
+
+**항목마다 따로 커밋한다**(`CLAUDE.md` 4번). 2-15는 추출과 교체가 한 몸이라 한 커밋이 맞다.
 
 ---
 
