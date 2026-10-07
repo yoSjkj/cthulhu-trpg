@@ -38,10 +38,25 @@ export function rollPenalty() {
   return Math.max(rollD100(), rollD100())
 }
 
-// 피해 공식 파서: "1d6+2", "1d3", "2d6" 등
+// 피해 공식 파서: "1d6+2", "1d3", "2d6", "2"(상수) 등
+// 대문자 D와 공백을 허용한다. ("1D6", " 1d6 ", "1d6 + 2")
+//
+// 파싱에 실패하면 throw한다. 조용히 0을 반환하면 피해가 사라져도 아무도 모른다.
+// AI가 돌려준 공식은 Game.jsx의 try/catch가 받아 [오류] 로그로 보여준다.
+// (시나리오·AI 입력의 사전 검증은 백로그 5-3)
 export function rollDamage(formula) {
-  const match = formula.match(/^(\d+)d(\d+)([+-]\d+)?$/)
-  if (!match) return 0
+  const normalized = String(formula).replace(/\s+/g, '').toLowerCase()
+
+  // 주사위 없는 상수식. 음수는 0으로 묶는다. (주사위식과 같은 규칙)
+  if (/^[+-]?\d+$/.test(normalized)) {
+    return Math.max(0, parseInt(normalized))
+  }
+
+  const match = normalized.match(/^(\d+)d(\d+)([+-]\d+)?$/)
+  if (!match) {
+    throw new Error(`피해 공식을 해석할 수 없습니다: ${JSON.stringify(formula)}`)
+  }
+
   const [, count, sides, mod] = match
   let total = 0
   for (let i = 0; i < parseInt(count); i++) {

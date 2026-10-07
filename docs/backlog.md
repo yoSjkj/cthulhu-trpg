@@ -125,8 +125,19 @@ maxSAN 계산식이 `character.js calcDerived`와 `sanity.js applySanLoss` **두
 
 | # | 현상 | 수정 |
 |---|---|---|
-| 2-13 | `rollDamage` 파싱 실패 시 조용히 0 반환 | 실패 시 throw 또는 경고 로그. 대문자 `D`, 앞뒤 공백 허용 |
+| ✅ 2-13 | `rollDamage` 파싱 실패 시 조용히 0 반환 | **throw**로 결정. 대문자 `D`·공백·주사위 없는 상수식 허용 |
 | 2-14 | `rollWithDB`가 `db.includes('d')` — 숫자 입력 시 TypeError | 문자열 강제 또는 타입 가드 |
+
+**2-13으로 실제 버그가 고쳐졌다 (2026-10-07):**
+상수식을 허용하자 시나리오의 `"loss": { "success": "1", ... }` **4곳**이 살아났다.
+(`test_scenario2.json` 25·185·193행, `test_scenario.json` 92행)
+구 정규식 `^(\d+)d(\d+)([+-]\d+)?$`는 `"1"`에 매칭되지 않아 조용히 0을 반환했고,
+`sanity.js`의 `lossFormula === '0' ? 0 : rollDamage(lossFormula)`는 `"1"`을 걸러내지 않으므로
+**SAN 체크를 성공해도 1 손실이 사라지고 있었다.** 조용한 0 반환이 가린 전형적인 사례다.
+
+throw를 고른 이유: AI가 돌려주는 `hp_loss.formula`는 `Game.jsx` 199행에서 호출되는데
+이 블록이 159~322행의 `try/catch`에 들어 있어 `[오류]` 로그로 표시되고 턴이 중단된다.
+엔진에 `console.warn` 부작용을 넣지 않아도 호출자가 알 수 있다. 사전 검증은 5-3이 담당한다.
 
 ### CharacterCreate.jsx
 
