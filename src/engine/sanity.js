@@ -81,7 +81,13 @@ export function rollIndefInsanityEffect() {
 //   현재 SAN을 기준으로 쓰면 SAN이 깎일수록 임계값이 낮아져 광기가 연쇄한다.
 //   생략하면 현재 SAN으로 보정하되, 호출자는 반드시 넘겨야 한다.
 export function applySanLoss(character, lossAmount, sessionLoss, startSAN = character.SAN) {
-  const newSAN = Math.max(0, character.SAN - lossAmount)
+  // game-rules.md: maxSAN = 99 − 크툴루신화 기술치
+  // character.js calcDerived와 같은 식이다. 호출에 abilities가 필요해 여기서 다시 계산한다.
+  const maxSAN = Math.min(99, 99 - (character.skills?.['크툴루신화'] ?? 0))
+
+  // game-rules.md: "SAN은 maxSAN을 초과할 수 없다"
+  // 손실이 0이어도 크툴루신화가 올라 maxSAN이 내려갔으면 여기서 묶인다.
+  const newSAN = Math.min(maxSAN, Math.max(0, character.SAN - lossAmount))
   const newSessionLoss = sessionLoss + lossAmount
 
   const insanity = checkInsanity(lossAmount, newSessionLoss, startSAN)
@@ -104,6 +110,6 @@ export function applySanLoss(character, lossAmount, sessionLoss, startSAN = char
     sessionLoss: newSessionLoss,
     temporaryInsanity: tempInsanity,
     indefiniteInsanity: indefInsanity,
-    maxSAN: Math.min(99, 99 - (character.skills?.['크툴루신화'] ?? 0)),
+    maxSAN,
   }
 }

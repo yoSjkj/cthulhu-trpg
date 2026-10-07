@@ -106,7 +106,7 @@ describe('applySanLoss — 2단계에서 해제할 케이스', () => {
   })
 
   // 2-12: 새 SAN이 maxSAN으로 클램프되지 않는다.
-  it.skip('[2-12] SAN은 maxSAN을 초과할 수 없다', () => {
+  it('[2-12] SAN은 maxSAN을 초과할 수 없다', () => {
     setRng(() => 0)
     const high = { ...base, SAN: 95, skills: { '크툴루신화': 10 } }
     // maxSAN = 99 - 10 = 89. 손실 0이어도 89로 묶여야 한다.

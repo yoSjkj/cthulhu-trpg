@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { setRng } from './dice'
-import { calcDerived, getBaseSkills, rollAbilities } from './character'
+import { calcDerived, getBaseSkills, rollAbilities, buildCharacter } from './character'
 
 afterEach(() => {
   setRng(Math.random)
@@ -114,6 +114,35 @@ describe('MOV — 2단계에서 해제할 케이스', () => {
       calcDerived({ STR: str, DEX: dex, SIZ: siz, CON: 50, POW: 50, EDU: 50 }).MOV
     expect(movFor(70, 50, 60)).toBe(8)
     expect(movFor(50, 70, 60)).toBe(8)
+  })
+})
+
+// game-rules.md: "SAN은 maxSAN을 초과할 수 없다"
+// 2-12의 클램프는 SAN이 줄 때(applySanLoss)만으로는 부족하다.
+// 생성 시점에 크툴루신화를 올리면 maxSAN이 내려가는데 SAN은 POW로 시작하므로
+// SAN 손실 없이도 maxSAN을 넘은 캐릭터가 만들어진다.
+describe('calcDerived — 시작 SAN은 maxSAN을 넘지 않는다 (2-12)', () => {
+  const abilities = { STR: 50, SIZ: 50, CON: 50, POW: 65, DEX: 50, EDU: 50 }
+
+  it('크툴루신화가 0이면 SAN은 POW 그대로다', () => {
+    expect(calcDerived(abilities).SAN).toBe(65)
+  })
+
+  it('크툴루신화로 maxSAN이 POW보다 낮아지면 SAN이 maxSAN으로 묶인다', () => {
+    // maxSAN = 99 - 50 = 49. POW 65보다 낮다.
+    const d = calcDerived(abilities, { '크툴루신화': 50 })
+    expect(d.maxSAN).toBe(49)
+    expect(d.SAN).toBe(49)
+  })
+
+  it('buildCharacter도 같은 클램프를 거친다', () => {
+    const c = buildCharacter({
+      name: '테스트', abilities, occupation: '탐정',
+      skills: { '크툴루신화': 80 },
+    })
+    // maxSAN = 99 - 80 = 19
+    expect(c.maxSAN).toBe(19)
+    expect(c.SAN).toBe(19)
   })
 })
 

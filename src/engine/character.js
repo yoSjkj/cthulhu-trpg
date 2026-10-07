@@ -34,12 +34,15 @@ export function rollAbilities() {
 export function calcDerived(abilities, skills = {}) {
   const { CON, SIZ, POW, STR, DEX, EDU } = abilities
   const { db, build } = calcDBAndBuild(STR, SIZ)
+  // game-rules.md: maxSAN = 99 − 크툴루신화 기술치
+  const maxSAN = 99 - (skills['크툴루신화'] ?? 0)
   return {
     HP: Math.floor((CON + SIZ) / 10),
     MP: Math.floor(POW / 5),
-    SAN: POW,
-    // game-rules.md: maxSAN = 99 − 크툴루신화 기술치
-    maxSAN: 99 - (skills['크툴루신화'] ?? 0),
+    // game-rules.md: "SAN은 maxSAN을 초과할 수 없다"
+    // 생성 시 크툴루신화를 올리면 maxSAN이 POW보다 낮아질 수 있다.
+    SAN: Math.min(POW, maxSAN),
+    maxSAN,
     DB: db,
     BUILD: build,
     // game-rules.md MOV 세 분기 — 9는 STR과 DEX가 "둘 다" SIZ 초과일 때만

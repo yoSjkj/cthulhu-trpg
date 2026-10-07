@@ -93,19 +93,25 @@
 | ✅ 2-9 | `Game.jsx handleRollSan`이 `applySanLoss`에 현재 SAN을 넘겨, `checkInsanity`의 `startSAN`이 계속 낮아짐 → 부정기 광기가 매 턴 발동 | store의 `sessionStartSAN`을 전달. **필드는 이미 존재함** |
 | ✅ 2-10 | `applySanLoss`가 갱신된 `sessionLoss`를 반환하지 않음 | 반환값에 포함 |
 | ✅ 2-11 | `permanentInsanity` 필드가 선언만 되고 설정되지 않음 | **제거**. 영구 광기는 손실 임계값이 아니라 상태라 `checkInsanity` 입력으로 판정 불가. `isSane` → `gameOver('insanity')`로 이미 구현돼 있어 중복 플래그였다 |
-| 2-12 | 새 SAN이 `maxSAN`으로 클램프되지 않음 | 클램프 추가 |
+| ✅ 2-12 | 새 SAN이 `maxSAN`으로 클램프되지 않음 | 클램프 추가. **생성 시점까지 포함** — `calcDerived`의 `SAN: Math.min(POW, maxSAN)`, `applySanLoss`의 `Math.min(maxSAN, ...)` 두 곳 |
 
-**2-8을 고치면서 드러난 것 (2026-10-07, 미처리):**
-`maxSAN = 99 − 크툴루신화`가 실제로 동작하기 시작하자 **SAN이 maxSAN을 넘을 수 있는 경로가 둘** 생겼다.
-`game-rules.md`는 "SAN은 maxSAN을 초과할 수 없다"고 정하는데, 2-12의 클램프는 `applySanLoss`에만 들어간다.
-
-1. **생성 시점** — 개인관심 포인트가 `Object.keys(baseSkills)` 전체에 배분되므로 크툴루신화를 올릴 수 있다
-   (`CharacterCreate.jsx` 196행). 크툴루신화 80이면 maxSAN은 19인데 SAN은 POW(최대 90)로 시작한다.
-2. **진행 중** — 5-1로 크툴루신화가 오르면 maxSAN이 내려간다. SAN 손실이 없으면 `applySanLoss`를
-   거치지 않으므로 클램프가 걸리지 않는다.
-
+**2-8을 고치면서 드러난 것 → 2-12에서 처리 (2026-10-07):**
+`maxSAN = 99 − 크툴루신화`가 실제로 동작하기 시작하자 **SAN이 maxSAN을 넘을 수 있는 경로가 셋** 생겼다.
+`game-rules.md`는 "SAN은 maxSAN을 초과할 수 없다"고 정한다.
 즉 클램프는 **SAN이 줄 때가 아니라 maxSAN이 줄 때도** 필요하다.
-2-12의 범위를 넓힐지 별 항목으로 둘지는 2-12 착수 때 판단한다. 2-8 범위를 넘으므로 이번에는 고치지 않았다.
+
+1. ✅ **손실 시점** — `applySanLoss`. 손실 0이어도 maxSAN으로 묶인다.
+2. ✅ **생성 시점** — 개인관심 포인트가 `Object.keys(baseSkills)` 전체에 배분되므로 크툴루신화를 올릴 수 있다
+   (`CharacterCreate.jsx` 196행). 크툴루신화 80이면 maxSAN은 19인데 SAN은 POW(최대 90)로 시작한다.
+   생성은 `buildCharacter` → `calcDerived(abilities, skills)`로 모이므로 `calcDerived` 한 곳에서 묶었다.
+3. ⬜ **진행 중** — 5-1로 크툴루신화가 오르면 maxSAN이 내려간다. SAN 손실이 없으면 `applySanLoss`를
+   거치지 않으므로 클램프가 걸리지 않는다. **5-1의 요구사항으로 넘겼다.**
+   해당 코드가 아직 없어 2-12에서 미리 짜면 검증할 대상이 없는 추측이 된다.
+
+**2-12를 고치면서 남은 것 (미처리):**
+maxSAN 계산식이 `character.js calcDerived`와 `sanity.js applySanLoss` **두 곳에 중복**된다.
+`applySanLoss`는 `character.skills`만 받고 `abilities`가 없어 `calcDerived`를 호출할 수 없기 때문이다.
+식이 바뀌면 두 곳을 같이 고쳐야 한다. 3단계 이후 정리할 때 단일화를 판단한다.
 
 **2-10을 고치면서 드러난 것 (2026-10-07, 미처리):**
 `applySanLoss`는 캐릭터 객체를 평평하게 반환하므로(1-3의 테스트가 `.SAN`과 `.sessionLoss`를
@@ -174,7 +180,7 @@
 
 | # | 현상 | 수정 |
 |---|---|---|
-| 5-1 | 크툴루신화가 절대 오르지 않음. `mythos_gains`가 `keeper_notes`에 산문으로만 존재 | clue와 ending에 `mythos_gain` 필드. 코드가 적용. maxSAN 연동 |
+| 5-1 | 크툴루신화가 절대 오르지 않음. `mythos_gains`가 `keeper_notes`에 산문으로만 존재 | clue와 ending에 `mythos_gain` 필드. 코드가 적용. maxSAN 연동 — **아래 2-12 인수인계 참조** |
 | 5-2 | `requires_ritual` 조건이 프롬프트로만 전달됨. AI가 무시하면 조건 미충족 엔딩이 발동 | `trigger_ending` 처리 시 코드가 조건 검증. 미충족이면 무시 |
 | 5-3 | `hp_loss.formula`가 무검증으로 `rollDamage`에 전달됨 | 허용 주사위 식 화이트리스트 |
 | 5-4 | `move_to`가 `connections` 검증 없이 처리됨 | 인접 장소인지 확인 |
@@ -182,6 +188,15 @@
 | 5-6 | 엔딩의 `injury`, `san_final`, `mythos_gain` 미처리 | 구조화된 필드로 받아 적용 |
 | 5-7 | `sanity.js`의 `rollTempInsanityEffect`(58행)와 `rollIndefInsanityEffect`(73행)가 `Math.random()` 직접 호출 | 둘 다 `dice.js` 경유. 목록 길이가 6이라 `roll(6) - 1`로 인덱스를 뽑을지, `dice.js`에 배열 추출 헬퍼를 둘지 판단 |
 | 5-8 | `Game.jsx:481`이 일시적 광기 지속 턴(1d10)을 `Math.random()`으로 직접 굴림. `game-rules.md`에 명시된 룰 수치가 UI 레이어에서 계산되고 있다 | `dice.js`의 `roll(10)` 경유. 지속 턴 계산을 `sanity.js`로 옮길지는 5-7과 함께 판단 |
+
+**2-12에서 5-1로 넘긴 요구사항 (2026-10-07):**
+크툴루신화가 오르면 `maxSAN = 99 − 크툴루신화`가 **내려간다.** 그런데 SAN 손실이 없으면
+`applySanLoss`를 거치지 않으므로 2-12의 클램프가 걸리지 않는다.
+즉 신화가 오른 직후 SAN이 maxSAN을 넘은 상태가 될 수 있다. (`game-rules.md`: "SAN은 maxSAN을 초과할 수 없다")
+
+**5-1에서 신화 상승을 적용할 때 maxSAN 재계산과 SAN 클램프를 같은 자리에서 처리해야 한다.**
+2-12 시점에는 신화 상승 코드 자체가 없어 미리 짜면 검증할 대상이 없는 추측이 되므로 넘겼다.
+클램프 식은 `calcDerived`(`character.js`)와 `applySanLoss`(`sanity.js`)에 이미 있다. 셋째 중복을 만들지 말고 단일화를 함께 판단한다.
 | 5-9 | `dice.test.js`의 `Math.random` 감시 테스트가 `dice.js` 함수만 덮는다. 4-6·5-7·5-8을 고쳐도 재발을 막을 장치가 없다 | 4-6·5-7·5-8 완료 후, `combat.js`·`sanity.js`·광기 지속 턴까지 포함하도록 감시 테스트 확장 |
 
 **`Math.random()` 직접 호출 전수 (2026-10-07 조사)**
