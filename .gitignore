@@ -3,5 +3,6 @@ dist/
 .env
 *.local
 .claude/
+.claude-uploads/
 .env.deploy
 deploy.bat
