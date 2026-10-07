@@ -402,8 +402,8 @@ export default function Game() {
   const handleUseLuck = () => {
     if (!pendingLuck) return
     const { character: c } = useGameStore.getState()
-    const { rolled, skillValue, skill, messages: prevMessages } = pendingLuck
-    const { canUse, cost } = useLuck(rolled, skillValue, c.LUCK)
+    const { rolled, skillValue, skill, difficulty, messages: prevMessages } = pendingLuck
+    const { canUse, cost } = useLuck(rolled, skillValue, c.LUCK, difficulty)
     if (!canUse) return
 
     spendLuck(cost)
@@ -622,7 +622,7 @@ export default function Game() {
               </>
             )}
             {pendingLuck && (() => {
-              const { canUse, cost } = useLuck(pendingLuck.rolled, pendingLuck.skillValue, character.LUCK)
+              const { canUse, cost } = useLuck(pendingLuck.rolled, pendingLuck.skillValue, character.LUCK, pendingLuck.difficulty)
               return (
                 <div className="bg-surface border border-border px-4 py-3 space-y-2">
                   <div className="text-xs text-dust tracking-widest uppercase">판정 실패</div>
@@ -637,10 +637,13 @@ export default function Game() {
                       </button>
                     )}
                     <div className="flex gap-2">
-                      <button onClick={handleUseLuck} disabled={!canUse}
-                        className="flex-1 border border-dust text-dust px-3 py-1.5 text-sm disabled:opacity-30 enabled:hover:border-parchment enabled:hover:text-parchment transition-colors">
-                        LUCK 소비 ({cost})
-                      </button>
+                      {/* 대실패에는 LUCK을 쓸 수 없다 (game-rules.md "LUCK 소비") */}
+                      {!pendingLuck.isFumble && (
+                        <button onClick={handleUseLuck} disabled={!canUse}
+                          className="flex-1 border border-dust text-dust px-3 py-1.5 text-sm disabled:opacity-30 enabled:hover:border-parchment enabled:hover:text-parchment transition-colors">
+                          LUCK 소비 ({cost})
+                        </button>
+                      )}
                       <button onClick={() => {
                         const { messages: pm } = pendingLuck
                         const failText = `[판정 실패: ${pendingLuck.skill}]`

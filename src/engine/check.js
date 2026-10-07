@@ -45,10 +45,22 @@ function checkPassesDifficulty(result, difficulty) {
   return false
 }
 
-// LUCK 소비: 판정 실패치(rolled - skillValue)만큼 LUCK 소비 → 확정 보통 성공
+// 난이도별 목표치 (game-rules.md "LUCK 소비")
+function difficultyTarget(skillValue, difficulty) {
+  if (difficulty === 'hard')    return Math.floor(skillValue / 2)
+  if (difficulty === 'extreme') return Math.floor(skillValue / 5)
+  return skillValue
+}
+
+// LUCK 소비: 목표치까지의 차이만큼 LUCK을 써서 확정 성공으로 전환
+// 비용 = 굴림값 − 해당 난이도의 목표치. 통과해야 하는 선이 난이도마다 다르다
+// 대실패에는 사용할 수 없다
+// SAN 굴림·피해 굴림에도 사용할 수 없다 — 두 경로는 이 함수를 호출하지 않는다
 // 반환: { canUse: boolean, cost: number }
-export function useLuck(rolled, skillValue, currentLuck) {
-  const cost = Math.max(1, rolled - skillValue)
+export function useLuck(rolled, skillValue, currentLuck, difficulty = 'normal') {
+  if (getCheckResult(rolled, skillValue) === 'fumble') return { canUse: false, cost: 0 }
+
+  const cost = Math.max(1, rolled - difficultyTarget(skillValue, difficulty))
   return { canUse: currentLuck >= cost, cost }
 }
 

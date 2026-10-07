@@ -154,15 +154,15 @@ describe('useLuck', () => {
 describe('useLuck — 2단계에서 해제할 케이스', () => {
   // 2-3: 현재 useLuck은 difficulty 인자를 받지 않고 항상 기술치를 목표치로 쓴다.
   // 수정 후 시그니처는 useLuck(rolled, skillValue, currentLuck, difficulty) 형태가 된다.
-  it.skip('[2-3] hard 난이도 비용 = 굴림값 - floor(기술치/2)', () => {
+  it('[2-3] hard 난이도 비용 = 굴림값 - floor(기술치/2)', () => {
     expect(useLuck(60, 50, 99, 'hard').cost).toBe(35)
   })
 
-  it.skip('[2-3] extreme 난이도 비용 = 굴림값 - floor(기술치/5)', () => {
+  it('[2-3] extreme 난이도 비용 = 굴림값 - floor(기술치/5)', () => {
     expect(useLuck(60, 50, 99, 'extreme').cost).toBe(50)
   })
 
-  it.skip('[2-3] 대실패에는 LUCK을 쓸 수 없다', () => {
+  it('[2-3] 대실패에는 LUCK을 쓸 수 없다', () => {
     // 기술치 40, roll 96 -> 대실패
     expect(useLuck(96, 40, 99, 'normal').canUse).toBe(false)
   })
