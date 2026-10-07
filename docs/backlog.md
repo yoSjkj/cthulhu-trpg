@@ -83,7 +83,7 @@
 | ✅ 2-5 | SIZ·INT·EDU가 3d6×5로 굴려짐 | `(2d6+6)×5`로 변경. `dice.js`에 헬퍼 추가 |
 | ✅ 2-6 | MOV 조건이 `\|\|` — 하나만 SIZ 초과해도 9 | `&&`로 변경 |
 | ✅ 2-7 | 회피 기본값이 `floor(DEX*2/5)` | `floor(DEX/2)` |
-| 2-8 | `maxSAN: Math.min(99, 99)` — 크툴루신화 반영 안 됨 | `calcDerived`가 skills를 받아 `99 - 크툴루신화` 계산 |
+| ✅ 2-8 | `maxSAN: Math.min(99, 99)` — 크툴루신화 반영 안 됨 | `calcDerived`가 skills를 받아 `99 - 크툴루신화` 계산 |
 
 ### sanity.js
 

@@ -30,14 +30,16 @@ export function rollAbilities() {
 }
 
 // 파생수치 계산
-export function calcDerived(abilities) {
+// skills를 넘기면 maxSAN에 크툴루신화가 반영된다. 생략하면 크툴루신화 0으로 본다
+export function calcDerived(abilities, skills = {}) {
   const { CON, SIZ, POW, STR, DEX, EDU } = abilities
   const { db, build } = calcDBAndBuild(STR, SIZ)
   return {
     HP: Math.floor((CON + SIZ) / 10),
     MP: Math.floor(POW / 5),
     SAN: POW,
-    maxSAN: Math.min(99, 99), // 크툴루신화 기술 오르면 감소
+    // game-rules.md: maxSAN = 99 − 크툴루신화 기술치
+    maxSAN: 99 - (skills['크툴루신화'] ?? 0),
     DB: db,
     BUILD: build,
     // game-rules.md MOV 세 분기 — 9는 STR과 DEX가 "둘 다" SIZ 초과일 때만
@@ -107,7 +109,7 @@ export const OCCUPATIONS = {
 
 // 완성된 캐릭터 객체 생성
 export function buildCharacter({ name, abilities, occupation, skills }) {
-  const derived = calcDerived(abilities)
+  const derived = calcDerived(abilities, skills)
   return {
     name,
     occupation,

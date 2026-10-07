@@ -53,7 +53,7 @@ describe('DB / BUILD — 2단계에서 해제할 케이스', () => {
   })
 
   // 2-8: calcDerived가 skills를 받지 않아 maxSAN이 항상 99다.
-  it.skip('[2-8] maxSAN = 99 - 크툴루신화', () => {
+  it('[2-8] maxSAN = 99 - 크툴루신화', () => {
     const d = calcDerived(
       { STR: 50, SIZ: 50, CON: 50, POW: 50, DEX: 50, EDU: 50 },
       { '크툴루신화': 10 },
