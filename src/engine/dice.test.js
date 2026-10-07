@@ -109,3 +109,38 @@ describe('주입된 난수원으로 결과가 고정된다', () => {
     expect(rollWithDB('1d6', '-2')).toBe(0)
   })
 })
+
+describe('rollDamage — 2단계에서 해제할 케이스', () => {
+  // 2-13: 정규식이 소문자 d, 앞뒤 공백 없는 형태만 받는다.
+  // 매칭 실패 시 조용히 0을 반환해 피해가 사라진다.
+  it.skip('[2-13] 대문자 D를 허용한다', () => {
+    setRng(() => 0)
+    expect(rollDamage('1D6')).toBe(1)
+    expect(rollDamage('2D6+1')).toBe(3)
+  })
+
+  it.skip('[2-13] 앞뒤 공백을 허용한다', () => {
+    setRng(() => 0)
+    expect(rollDamage(' 1d6 ')).toBe(1)
+    expect(rollDamage('1d6 + 2')).toBe(3)
+  })
+
+  it.skip('[2-13] 주사위 없는 상수식을 허용한다', () => {
+    expect(rollDamage('2')).toBe(2)
+    expect(rollDamage('0')).toBe(0)
+  })
+
+  it.skip('[2-13] 파싱 실패는 조용히 0을 반환하지 않는다', () => {
+    // throw 또는 경고 로그 중 어느 쪽으로 갈지는 2-13에서 결정한다.
+    expect(() => rollDamage('abc')).toThrow()
+  })
+})
+
+describe('rollWithDB — 2단계에서 해제할 케이스', () => {
+  // 2-14: db.includes('d')를 호출해 숫자를 넘기면 TypeError가 난다.
+  it.skip('[2-14] DB가 숫자여도 처리한다', () => {
+    setRng(() => 0)
+    expect(rollWithDB('1d6', 2)).toBe(3)
+    expect(rollWithDB('1d6', 0)).toBe(1)
+  })
+})
