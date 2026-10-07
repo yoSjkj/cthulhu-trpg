@@ -2,7 +2,9 @@ import { rollD100, rollBonus, rollPenalty } from './dice.js'
 
 // 판정 등급 계산
 export function getCheckResult(roll, skillValue) {
-  const critical = skillValue < 50 ? 1 : Math.floor(skillValue / 5)
+  // 대성공 경계에 기술치 하한을 걸지 않는다. (game-rules.md "대성공 조건 주의")
+  // roll 1은 기술치와 무관하게 항상 대성공이므로 아래 판정에서 별도로 다룬다.
+  const critical = Math.floor(skillValue / 5)
   const hard     = Math.floor(skillValue / 2)
   const fumble   = skillValue < 50 ? 96 : 100
 

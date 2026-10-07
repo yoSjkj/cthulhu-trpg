@@ -73,8 +73,7 @@ describe('getCheckResult — 2단계에서 해제할 케이스', () => {
 
   // game-rules.md: "대성공 조건 주의: floor(기술치/5)에 기술치 하한을 걸지 않는다.
   //   기술치 40이면 roll 8 이하가 대성공이다."
-  // 현재 코드는 skillValue < 50이면 critical을 roll 1로만 제한한다.
-  it.skip('[2-1] 기술치 50 미만에서도 floor(기술치/5)까지 대성공', () => {
+  it('[2-1] 기술치 50 미만에서도 floor(기술치/5)까지 대성공', () => {
     expect(getCheckResult(8, 40)).toBe('critical')
     expect(getCheckResult(9, 49)).toBe('critical')
   })
