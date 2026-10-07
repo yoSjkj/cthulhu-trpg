@@ -1,6 +1,16 @@
+// 난수원. 테스트에서 setRng로 교체해 굴림을 고정한다.
+// 이 모듈의 모든 굴림은 roll()을 경유하므로 주입 지점은 여기 하나다.
+let rng = Math.random
+
+// 난수원 교체. 0 이상 1 미만을 반환하는 함수를 넘긴다.
+// 테스트 후에는 setRng(Math.random)으로 되돌린다.
+export function setRng(fn) {
+  rng = fn
+}
+
 // 기본 주사위 굴림
 export function roll(sides) {
-  return Math.floor(Math.random() * sides) + 1
+  return Math.floor(rng() * sides) + 1
 }
 
 // d100 굴림 (1~100)

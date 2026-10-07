@@ -34,8 +34,8 @@
 
 | # | 파일 | 작업 |
 |---|---|---|
-| 1-1 | `dice.js` | RNG 주입 가능하게 변경. `let rng = Math.random` + `setRng(fn)` export. 모든 굴림이 이를 경유 |
-| 1-2 | — | Vitest 도입. `npm run test` 스크립트 추가 |
+| ✅ 1-1 | `dice.js` | RNG 주입 가능하게 변경. `let rng = Math.random` + `setRng(fn)` export. 모든 굴림이 이를 경유 |
+| ✅ 1-2 | — | Vitest 도입. `npm run test` 스크립트 추가 |
 | 1-3 | `engine/*.test.js` | 경계값 테스트 작성. 아래 목록 필수 |
 
 **1-3 필수 테스트 케이스**
