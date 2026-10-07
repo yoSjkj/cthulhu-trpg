@@ -138,9 +138,19 @@ describe('rollDamage — 2단계에서 해제할 케이스', () => {
 
 describe('rollWithDB — 2단계에서 해제할 케이스', () => {
   // 2-14: db.includes('d')를 호출해 숫자를 넘기면 TypeError가 난다.
-  it.skip('[2-14] DB가 숫자여도 처리한다', () => {
+  it('[2-14] DB가 숫자여도 처리한다', () => {
     setRng(() => 0)
     expect(rollWithDB('1d6', 2)).toBe(3)
     expect(rollWithDB('1d6', 0)).toBe(1)
+    expect(rollWithDB('1d6', -2)).toBe(0)
+  })
+
+  // game-rules.md는 DB를 항상 문자열로 저장하라고 정한다. 숫자 처리는 방어 장치다.
+  it('[2-14] 대문자 D 주사위 DB도 주사위로 본다', () => {
+    // 최대 굴림으로 고정해 두 경로를 구분한다.
+    //   주사위로 보면 1d6(6) + 1D4(4) = 10
+    //   includes('d')가 false라 상수로 보면 parseInt('1D4') = 1 -> 7
+    setRng(() => 0.999999)
+    expect(rollWithDB('1d6', '1D4')).toBe(10)
   })
 })

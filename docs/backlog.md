@@ -126,7 +126,7 @@ maxSAN 계산식이 `character.js calcDerived`와 `sanity.js applySanLoss` **두
 | # | 현상 | 수정 |
 |---|---|---|
 | ✅ 2-13 | `rollDamage` 파싱 실패 시 조용히 0 반환 | **throw**로 결정. 대문자 `D`·공백·주사위 없는 상수식 허용 |
-| 2-14 | `rollWithDB`가 `db.includes('d')` — 숫자 입력 시 TypeError | 문자열 강제 또는 타입 가드 |
+| ✅ 2-14 | `rollWithDB`가 `db.includes('d')` — 숫자 입력 시 TypeError | `String(db)`로 강제 + 대문자 `D`도 주사위로 판별. 같은 패턴이 `combat.js` 35행에 남아 있다 → 4-6에서 처리 |
 
 **2-13으로 실제 버그가 고쳐졌다 (2026-10-07):**
 상수식을 허용하자 시나리오의 `"loss": { "success": "1", ... }` **4곳**이 살아났다.
@@ -173,7 +173,7 @@ throw를 고른 이유: AI가 돌려주는 `hp_loss.formula`는 `Game.jsx` 199�
 | 4-3 | `Game.jsx` | 전투 라운드 루프 구현. 플레이어 행동 → 적 행동(코드) → 결과를 AI에 전달. **코드 작성 전 설계를 먼저 설명할 것** |
 | 4-4 | `combat.js`, `Game.jsx` | 회피를 실제 방어로 연결. 현재는 굴림만 하고 아무것도 막지 못함 — 막을 적 공격 이벤트가 없기 때문이다(4-2 선행). **양쪽 다 자동 굴림으로 구현한다** (2026-10-07 결정): 공격 결과가 `canDodge`면 코드가 방어자 회피를 즉시 굴려 해소하고, 플레이어 회피 버튼은 **제거**한다. 근거는 하우스룰이 반격을 미지원해 회피를 거절할 이득이 없다는 것 — 선택지가 성립하지 않는다. 함께 수정: `performDodge`(53행)의 회피 기본값이 `defender.DEX * 2`다. `game-rules.md`는 `floor(DEX / 2)` |
 | 4-5 | `combat.js` | 중상 판정 수정. 한 번의 피해가 maxHP 절반 이상일 때. CON 판정 기절, maxHP 이상 즉사 추가 |
-| 4-6 | `combat.js` | `Math.random()` 직접 호출 4건 제거. `performAttack`(21~24행)은 `rollBonus`/`rollPenalty`/`rollD100`을 삼항식으로 재구현하고 있다 — `dice.js` 함수로 교체. `performDodge`(54행)는 `rollD100()` |
+| 4-6 | `combat.js` | `Math.random()` 직접 호출 4건 제거. `performAttack`(21~24행)은 `rollBonus`/`rollPenalty`/`rollD100`을 삼항식으로 재구현하고 있다 — `dice.js` 함수로 교체. `performDodge`(54행)는 `rollD100()`. **함께 수정: 2-14의 쌍둥이** — 35행 `attacker.DB?.includes('d')`가 DB 판별을 직접 하고 있다. 숫자 DB면 TypeError, 대문자 `"1D4"`면 `parseInt`로 떨어져 1이 된다. `dice.js`의 `rollWithDB`로 넘겨 판별을 한 곳에 모은다 |
 | 4-7 | `Game.jsx`, `gameStore.js`, `keeper.js` | **전투 생명주기를 코드가 쥔다.** 현재 종료 권한이 AI에 있다 — `keeper.js`가 "`combat_start: false` 전환 조건은 적 사망·적 도주·탐사자 도주 성공 셋뿐"이라고 지시만 하고, 코드는 그 응답을 따른다. 적을 처치하면 두 경로 다 깨진다. ① AI가 전투를 끝내면 적이 `null`이 되고, 이후 AI가 다시 `combat_start: true`를 주는 순간 `Game.jsx:289`의 `if (!combatEnemyRef.current)`가 `enemyPool[0]`을 **풀 HP로 재스폰** — 같은 적이 부활한다 ② AI가 끝내지 않으면 `hp: 0`인 적을 계속 공격한다(객체가 truthy라 재스폰도 안 된다). 처치 이력이 코드 어디에도 없다. **수정:** 적 HP 0 → 코드가 전투를 종료하고, 처치한 적 id를 store에 기록해 재스폰을 차단한다. AI에는 통보만 한다 |
 
 **4-7은 4-3의 설계 설명에 포함해 함께 판단한다.** 라운드 내부 흐름(4-3)과 전투 전체의 시작·종료·스폰(4-7)은 같은 자리에서 결정돼야 한다.

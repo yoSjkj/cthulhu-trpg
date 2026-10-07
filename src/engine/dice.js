@@ -68,11 +68,18 @@ export function rollDamage(formula) {
 
 // DB(데미지 보너스) 적용
 // DB가 "-2" 같은 문자열일 수도 있고, "1d4", "1d6" 같은 주사위일 수도 있음
+//
+// game-rules.md는 DB를 항상 문자열로 저장하라고 정하지만, 숫자가 들어와도 깨지지 않게 한다.
+// db.includes를 바로 부르면 숫자에서 TypeError가 난다.
 export function rollWithDB(baseFormula, db) {
-  let base = rollDamage(baseFormula)
-  if (!db || db === '0') return base
-  if (db.includes('d')) {
-    return Math.max(0, base + rollDamage(db))
+  const base = rollDamage(baseFormula)
+  if (db === null || db === undefined || db === '') return base
+
+  // 대문자 D도 주사위로 본다. 소문자만 보면 "1D4"가 parseInt로 떨어져 1이 된다.
+  const dbStr = String(db).trim().toLowerCase()
+  if (dbStr === '0') return base
+  if (dbStr.includes('d')) {
+    return Math.max(0, base + rollDamage(dbStr))
   }
-  return Math.max(0, base + parseInt(db))
+  return Math.max(0, base + parseInt(dbStr))
 }
