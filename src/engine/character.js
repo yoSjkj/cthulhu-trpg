@@ -40,8 +40,9 @@ export function calcDerived(abilities) {
     maxSAN: Math.min(99, 99), // 크툴루신화 기술 오르면 감소
     DB: db,
     BUILD: build,
+    // game-rules.md MOV 세 분기 — 9는 STR과 DEX가 "둘 다" SIZ 초과일 때만
     MOV: DEX < SIZ && STR < SIZ ? 7
-        : DEX > SIZ || STR > SIZ ? 9
+        : DEX > SIZ && STR > SIZ ? 9
         : 8,
   }
 }

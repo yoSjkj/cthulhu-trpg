@@ -109,7 +109,7 @@ describe('calcDerived — MOV 세 분기', () => {
 
 describe('MOV — 2단계에서 해제할 케이스', () => {
   // 2-6: 조건이 ||라서 하나만 SIZ를 초과해도 9가 된다.
-  it.skip('[2-6] 하나만 SIZ 이상이면 8', () => {
+  it('[2-6] 하나만 SIZ 이상이면 8', () => {
     const movFor = (str, dex, siz) =>
       calcDerived({ STR: str, DEX: dex, SIZ: siz, CON: 50, POW: 50, EDU: 50 }).MOV
     expect(movFor(70, 50, 60)).toBe(8)
