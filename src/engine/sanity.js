@@ -98,6 +98,8 @@ export function applySanLoss(character, lossAmount, sessionLoss, startSAN = char
     ...character,
     SAN: newSAN,
     isSane: newSAN > 0,
+    // 갱신된 누적 손실. 호출자가 다음 호출에 그대로 넘긴다.
+    sessionLoss: newSessionLoss,
     temporaryInsanity: tempInsanity,
     indefiniteInsanity: indefInsanity,
     maxSAN: Math.min(99, 99 - (character.skills?.['크툴루신화'] ?? 0)),

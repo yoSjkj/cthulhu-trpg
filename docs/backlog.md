@@ -90,7 +90,7 @@
 | # | 현상 | 수정 |
 |---|---|---|
 | ✅ 2-9 | `Game.jsx handleRollSan`이 `applySanLoss`에 현재 SAN을 넘겨, `checkInsanity`의 `startSAN`이 계속 낮아짐 → 부정기 광기가 매 턴 발동 | store의 `sessionStartSAN`을 전달. **필드는 이미 존재함** |
-| 2-10 | `applySanLoss`가 갱신된 `sessionLoss`를 반환하지 않음 | 반환값에 포함 |
+| ✅ 2-10 | `applySanLoss`가 갱신된 `sessionLoss`를 반환하지 않음 | 반환값에 포함 |
 | 2-11 | `permanentInsanity` 필드가 선언만 되고 설정되지 않음 | 채우거나 제거 |
 | 2-12 | 새 SAN이 `maxSAN`으로 클램프되지 않음 | 클램프 추가 |
 
@@ -105,6 +105,14 @@
 
 즉 클램프는 **SAN이 줄 때가 아니라 maxSAN이 줄 때도** 필요하다.
 2-12의 범위를 넓힐지 별 항목으로 둘지는 2-12 착수 때 판단한다. 2-8 범위를 넘으므로 이번에는 고치지 않았다.
+
+**2-10을 고치면서 드러난 것 (2026-10-07, 미처리):**
+`applySanLoss`는 캐릭터 객체를 평평하게 반환하므로(1-3의 테스트가 `.SAN`과 `.sessionLoss`를
+같은 객체에서 읽는다) `sessionLoss`가 **캐릭터 필드로 섞여 들어가 persist까지 저장된다.**
+게다가 `gameStore.applySanLoss`는 `state.sessionSANLoss + lossAmount`로 누적값을 따로 계산하므로
+**누적 손실의 출처가 둘**이다. 지금은 두 값이 같지만 한쪽만 갱신되면 조용히 어긋난다.
+반환 모양을 `{ character, sessionLoss }`로 바꾸려면 기존 테스트와 호출부를 모두 고쳐야 해서
+2-10 범위를 넘는다. 3단계 이후 store 정리할 때 함께 판단한다.
 
 ### dice.js
 

@@ -100,7 +100,7 @@ describe('applySanLoss — 2단계에서 해제할 케이스', () => {
   const base = { SAN: 50, skills: { '크툴루신화': 0 }, temporaryInsanity: null, indefiniteInsanity: null }
 
   // 2-10: 갱신된 sessionLoss를 반환하지 않아 호출자가 누적값을 알 수 없다.
-  it.skip('[2-10] 갱신된 sessionLoss를 반환한다', () => {
+  it('[2-10] 갱신된 sessionLoss를 반환한다', () => {
     setRng(() => 0)
     expect(applySanLoss(base, 3, 7).sessionLoss).toBe(10)
   })
