@@ -150,7 +150,7 @@ describe('getBaseSkills — 2단계에서 해제할 케이스', () => {
 describe('rollAbilities — 2단계에서 해제할 케이스', () => {
   // 2-5: SIZ, INT, EDU는 (2d6+6)×5로 굴려야 한다. 현재는 전부 3d6×5다.
   // 난수원을 최소로 고정하면 3d6×5는 15, (2d6+6)×5는 40이 된다.
-  it.skip('[2-5] SIZ / INT / EDU는 (2d6+6)×5', () => {
+  it('[2-5] SIZ / INT / EDU는 (2d6+6)×5', () => {
     setRng(() => 0)
     const a = rollAbilities()
     expect(a.STR).toBe(15)

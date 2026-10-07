@@ -18,9 +18,14 @@ export function rollD100() {
   return roll(100)
 }
 
-// 3d6×5 (능력치 생성)
+// 3d6×5 (STR, CON, DEX, APP, POW, LUCK 생성)
 export function roll3d6x5() {
   return (roll(6) + roll(6) + roll(6)) * 5
+}
+
+// (2d6+6)×5 (SIZ, INT, EDU 생성) — game-rules.md "능력치 생성"
+export function roll2d6plus6x5() {
+  return (roll(6) + roll(6) + 6) * 5
 }
 
 // 보너스 주사위: d100 두 번 굴려 낮은 값

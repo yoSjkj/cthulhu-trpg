@@ -1,4 +1,4 @@
-import { roll3d6x5, roll } from './dice.js'
+import { roll3d6x5, roll2d6plus6x5, roll } from './dice.js'
 
 // DB/BUILD 계산표 — game-rules.md "DB / BUILD" 표와 1:1 대응
 //   2~64 -2/-2 | 65~84 -1/-1 | 85~124 0/0 | 125~164 1d4/1 | 165~204 1d6/2 | 205~284 2d6/3
@@ -13,17 +13,18 @@ function calcDBAndBuild(str, siz) {
   return              { db: '2d6', build: 3  }
 }
 
-// 8개 능력치 + LUCK 굴림
+// 8개 능력치 + LUCK 굴림 — game-rules.md "능력치 생성"
+// SIZ, INT, EDU만 (2d6+6)×5. 나머지는 3d6×5
 export function rollAbilities() {
   return {
     STR: roll3d6x5(),
     CON: roll3d6x5(),
-    SIZ: roll3d6x5(),
+    SIZ: roll2d6plus6x5(),
     DEX: roll3d6x5(),
     APP: roll3d6x5(),
-    INT: roll3d6x5(),
+    INT: roll2d6plus6x5(),
     POW: roll3d6x5(),
-    EDU: roll3d6x5(),
+    EDU: roll2d6plus6x5(),
     LUCK: roll3d6x5(),
   }
 }
