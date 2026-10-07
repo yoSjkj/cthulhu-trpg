@@ -66,8 +66,7 @@ describe('getCheckResult — 백로그 1-3 필수 매트릭스', () => {
 describe('getCheckResult — 2단계에서 해제할 케이스', () => {
   // game-rules.md: "판정 순서 주의: 대실패를 먼저 확인한다.
   //   기술치 100 이상일 때 roll 100이 성공으로 처리되면 안 된다."
-  // 현재 코드는 regular를 fumble보다 먼저 평가해 'regular'를 반환한다.
-  it.skip('[2-2] 기술치 100에서 roll 100은 대실패여야 한다', () => {
+  it('[2-2] 기술치 100에서 roll 100은 대실패여야 한다', () => {
     expect(getCheckResult(100, 100)).toBe('fumble')
   })
 

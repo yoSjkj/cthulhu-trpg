@@ -72,7 +72,7 @@
 | # | 현상 | 수정 |
 |---|---|---|
 | ✅ 2-1 | `critical = skillValue < 50 ? 1 : ...` — 기술치 50 미만이면 대성공이 roll 1로만 한정됨 | 하한 조건 제거. `Math.floor(skillValue / 5)` |
-| 2-2 | `regular` 판정이 `fumble`보다 먼저 평가됨 — 기술치 100 이상에서 roll 100이 성공 처리 | fumble 체크를 위로 이동 |
+| ✅ 2-2 | `regular` 판정이 `fumble`보다 먼저 평가됨 — 기술치 100 이상에서 roll 100이 성공 처리 | fumble 체크를 위로 이동 |
 | 2-3 | `useLuck`이 난이도를 무시하고 `skillValue` 기준으로 비용 계산 | `difficulty` 인자 추가. 목표치 기준 계산. 대실패·SAN 굴림 사용 차단 |
 
 ### character.js

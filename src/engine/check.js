@@ -8,10 +8,12 @@ export function getCheckResult(roll, skillValue) {
   const hard     = Math.floor(skillValue / 2)
   const fumble   = skillValue < 50 ? 96 : 100
 
+  // 대실패를 가장 먼저 확인한다. (game-rules.md "판정 순서 주의")
+  // regular를 먼저 보면 기술치 100 이상에서 roll 100이 성공으로 처리된다.
+  if (roll >= fumble)                 return 'fumble'
   if (roll === 1 || roll <= critical) return 'critical'
   if (roll <= hard)                   return 'hard'
   if (roll <= skillValue)             return 'regular'
-  if (roll >= fumble)                 return 'fumble'
   return 'fail'
 }
 
