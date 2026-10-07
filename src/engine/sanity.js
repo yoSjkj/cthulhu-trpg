@@ -20,11 +20,13 @@ export function performSanCheck(currentSAN, loss) {
 // 광기 판정
 // sessionLoss: 세션 시작 이후 누적 SAN 손실량
 // startSAN: 세션 시작 시 SAN 값
+//
+// 영구 광기(SAN = 0)는 여기서 다루지 않는다. 손실 누적 임계값이 아니라 상태이고,
+// 이 함수의 입력만으로는 판정할 수 없다. applySanLoss의 isSane이 담당한다.
 export function checkInsanity(singleLoss, sessionLoss, startSAN) {
   const result = {
     temporaryInsanity: false,
     indefiniteInsanity: false,
-    permanentInsanity: false,
   }
 
   // 일시적 광기: 한 번에 5 이상 손실

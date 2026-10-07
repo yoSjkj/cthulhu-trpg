@@ -48,7 +48,8 @@
 예: `it.skip('[2-4] DB 표 경계값', ...)`
 2단계에서 해당 항목을 고칠 때 `.skip`을 지우면 테스트가 초록이 되어야 한다.
 현재 스킵된 19개가 2-1 ~ 2-10, 2-12 ~ 2-14를 덮는다.
-2-11(`permanentInsanity` 처리)은 "채우거나 제거"가 미결정이라 테스트를 쓰지 않았다.
+2-11(`permanentInsanity` 처리)은 미결정이라 테스트가 없었다. 2026-10-07에 **제거**로 정하고
+착수 시점에 테스트를 썼다.
 2-15 ~ 2-17은 `CharacterCreate.jsx`로 `engine/` 범위가 아니다.
 
 **1-3 필수 테스트 케이스**
@@ -91,7 +92,7 @@
 |---|---|---|
 | ✅ 2-9 | `Game.jsx handleRollSan`이 `applySanLoss`에 현재 SAN을 넘겨, `checkInsanity`의 `startSAN`이 계속 낮아짐 → 부정기 광기가 매 턴 발동 | store의 `sessionStartSAN`을 전달. **필드는 이미 존재함** |
 | ✅ 2-10 | `applySanLoss`가 갱신된 `sessionLoss`를 반환하지 않음 | 반환값에 포함 |
-| 2-11 | `permanentInsanity` 필드가 선언만 되고 설정되지 않음 | 채우거나 제거 |
+| ✅ 2-11 | `permanentInsanity` 필드가 선언만 되고 설정되지 않음 | **제거**. 영구 광기는 손실 임계값이 아니라 상태라 `checkInsanity` 입력으로 판정 불가. `isSane` → `gameOver('insanity')`로 이미 구현돼 있어 중복 플래그였다 |
 | 2-12 | 새 SAN이 `maxSAN`으로 클램프되지 않음 | 클램프 추가 |
 
 **2-8을 고치면서 드러난 것 (2026-10-07, 미처리):**

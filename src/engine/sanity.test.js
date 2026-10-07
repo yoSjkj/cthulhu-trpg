@@ -130,5 +130,19 @@ describe('applySanLoss — 2단계에서 해제할 케이스', () => {
   })
 })
 
-// 2-11(permanentInsanity 필드 처리)은 "채우거나 제거" 중 무엇으로 갈지
-// 아직 정해지지 않았으므로 테스트를 쓰지 않는다.
+// 2-11: permanentInsanity는 제거하기로 결정했다. (2026-10-07)
+// 영구 광기(SAN = 0)는 손실 누적 임계값이 아니라 상태이므로 checkInsanity의
+// 입력(singleLoss, sessionLoss, startSAN)만으로는 판정할 수 없다.
+// 룰은 isSane -> gameOver('insanity') 경로로 이미 구현되어 있다.
+describe('checkInsanity — 영구 광기는 다루지 않는다', () => {
+  it('[2-11] 결과에 permanentInsanity 필드가 없다', () => {
+    expect(checkInsanity(5, 10, 50)).not.toHaveProperty('permanentInsanity')
+  })
+
+  it('[2-11] 영구 광기는 applySanLoss의 isSane이 담당한다', () => {
+    setRng(() => 0)
+    const base = { SAN: 50, skills: { '크툴루신화': 0 }, temporaryInsanity: null, indefiniteInsanity: null }
+    expect(applySanLoss(base, 50, 0, 50).SAN).toBe(0)
+    expect(applySanLoss(base, 50, 0, 50).isSane).toBe(false)
+  })
+})
