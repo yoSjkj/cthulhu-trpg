@@ -237,9 +237,9 @@ export default function Game() {
       if (pressureStage) {
         addLog('system', `[압박] ${pressureStage.message}`)
         if (pressureStage.effect === 'san_drain') {
-          const { character: drainChar, sessionSANLoss: drainSanLoss } = useGameStore.getState()
+          const { character: drainChar, sessionSANLoss: drainSanLoss, sessionStartSAN: drainStartSAN } = useGameStore.getState()
           const lossAmt = pressureStage.amount ?? 1
-          const updatedDrainChar = applySanLoss(drainChar, lossAmt, drainSanLoss)
+          const updatedDrainChar = applySanLoss(drainChar, lossAmt, drainSanLoss, drainStartSAN)
           storeSanLoss(lossAmt, updatedDrainChar)
           addLog('san', `[압박] SAN -${lossAmt} → ${updatedDrainChar.SAN}`)
           if (!updatedDrainChar.isSane) { gameOver('insanity'); return }
@@ -468,9 +468,9 @@ export default function Game() {
   const handleRollSan = () => {
     if (!pendingSan) return
     setLastFailedSkill(null)
-    const { character: c, sessionSANLoss: sanLoss } = useGameStore.getState()
+    const { character: c, sessionSANLoss: sanLoss, sessionStartSAN: startSAN } = useGameStore.getState()
     const result = performSanCheck(c.SAN, pendingSan.loss)
-    const updatedChar = applySanLoss(c, result.lossAmount, sanLoss)
+    const updatedChar = applySanLoss(c, result.lossAmount, sanLoss, startSAN)
     storeSanLoss(result.lossAmount, updatedChar)
 
     const sanText = `[SAN 체크: ${result.passed ? '성공' : '실패'} (${result.roll}) | SAN -${result.lossAmount} → ${updatedChar.SAN}]`

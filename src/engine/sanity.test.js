@@ -116,13 +116,17 @@ describe('applySanLoss — 2단계에서 해제할 케이스', () => {
   // 2-9: Game.jsx가 현재 SAN을 startSAN으로 넘겨 임계값이 매번 낮아진다.
   // applySanLoss가 character.SAN을 startSAN으로 쓰는 것이 원인이다.
   // 수정 후에는 세션 시작 SAN을 인자로 받아야 한다.
-  it.skip('[2-9] 부정기 광기 기준은 세션 시작 SAN이어야 한다', () => {
+  it('[2-9] 부정기 광기 기준은 세션 시작 SAN이어야 한다', () => {
     setRng(() => 0)
-    // 시작 SAN 50에서 이미 40까지 떨어진 상태. 누적 손실 9.
-    // 임계값은 floor(50/5) = 10이므로 손실 1을 더해도 발동하지 않아야 한다.
+    // 시작 SAN 50에서 이미 40까지 떨어진 상태. 누적 손실 7에 1을 더해 8이 된다.
+    // 현재 SAN 40을 기준으로 삼으면 임계값이 floor(40/5)=8이라 발동한다. (버그)
+    // 세션 시작 SAN 50을 기준으로 삼으면 임계값이 floor(50/5)=10이라 발동하지 않는다.
     const dropped = { ...base, SAN: 40 }
-    const r = applySanLoss(dropped, 1, 9, 50)
+    const r = applySanLoss(dropped, 1, 7, 50)
     expect(r.indefiniteInsanity).toBe(null)
+
+    // 기준이 세션 시작 SAN이라는 것을 반대 방향으로도 확인한다. 누적 10이면 발동한다.
+    expect(applySanLoss(dropped, 1, 9, 50).indefiniteInsanity).not.toBe(null)
   })
 })
 

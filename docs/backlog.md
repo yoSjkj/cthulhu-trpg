@@ -89,7 +89,7 @@
 
 | # | 현상 | 수정 |
 |---|---|---|
-| 2-9 | `Game.jsx handleRollSan`이 `applySanLoss`에 현재 SAN을 넘겨, `checkInsanity`의 `startSAN`이 계속 낮아짐 → 부정기 광기가 매 턴 발동 | store의 `sessionStartSAN`을 전달. **필드는 이미 존재함** |
+| ✅ 2-9 | `Game.jsx handleRollSan`이 `applySanLoss`에 현재 SAN을 넘겨, `checkInsanity`의 `startSAN`이 계속 낮아짐 → 부정기 광기가 매 턴 발동 | store의 `sessionStartSAN`을 전달. **필드는 이미 존재함** |
 | 2-10 | `applySanLoss`가 갱신된 `sessionLoss`를 반환하지 않음 | 반환값에 포함 |
 | 2-11 | `permanentInsanity` 필드가 선언만 되고 설정되지 않음 | 채우거나 제거 |
 | 2-12 | 새 SAN이 `maxSAN`으로 클램프되지 않음 | 클램프 추가 |

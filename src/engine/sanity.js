@@ -75,11 +75,14 @@ export function rollIndefInsanityEffect() {
 }
 
 // SAN 적용 후 캐릭터 상태 업데이트
-export function applySanLoss(character, lossAmount, sessionLoss) {
+// startSAN: 세션 시작 시 SAN. 부정기 광기 임계값의 기준이다.
+//   현재 SAN을 기준으로 쓰면 SAN이 깎일수록 임계값이 낮아져 광기가 연쇄한다.
+//   생략하면 현재 SAN으로 보정하되, 호출자는 반드시 넘겨야 한다.
+export function applySanLoss(character, lossAmount, sessionLoss, startSAN = character.SAN) {
   const newSAN = Math.max(0, character.SAN - lossAmount)
   const newSessionLoss = sessionLoss + lossAmount
 
-  const insanity = checkInsanity(lossAmount, newSessionLoss, character.SAN)
+  const insanity = checkInsanity(lossAmount, newSessionLoss, startSAN)
 
   let tempInsanity = character.temporaryInsanity
   let indefInsanity = character.indefiniteInsanity
