@@ -51,7 +51,7 @@ export function calcDerived(abilities) {
 export function getBaseSkills(abilities) {
   const { DEX } = abilities
   return {
-    '회피':       Math.floor(DEX * 2 / 5),
+    '회피':       Math.floor(DEX / 2),
     '발견':       25,
     '도서관사용': 20,
     '심리학':     10,

@@ -141,7 +141,7 @@ describe('getBaseSkills', () => {
 
 describe('getBaseSkills — 2단계에서 해제할 케이스', () => {
   // 2-7: 회피가 floor(DEX*2/5)로 계산된다. 룰은 floor(DEX/2).
-  it.skip('[2-7] 회피 = floor(DEX / 2)', () => {
+  it('[2-7] 회피 = floor(DEX / 2)', () => {
     expect(getBaseSkills({ DEX: 60 })['회피']).toBe(30)
     expect(getBaseSkills({ DEX: 55 })['회피']).toBe(27)
   })
