@@ -1,6 +1,6 @@
 # 백로그
 
-총 57개 항목, 9단계(0~8). 각 단계가 끝나면 게임이 동작하는 상태를 유지한다.
+총 58개 항목, 9단계(0~8). 각 단계가 끝나면 게임이 동작하는 상태를 유지한다.
 위에서부터 순서대로 진행한다. 단계를 건너뛰지 않는다.
 
 2단계부터는 한 세션에 한 항목만 작업한다.
@@ -129,7 +129,7 @@
 | 4-3 | `Game.jsx` | 전투 라운드 루프 구현. 플레이어 행동 → 적 행동(코드) → 결과를 AI에 전달. **코드 작성 전 설계를 먼저 설명할 것** |
 | 4-4 | `combat.js`, `Game.jsx` | 회피를 실제 방어로 연결. 현재는 굴림만 하고 아무것도 막지 못함 |
 | 4-5 | `combat.js` | 중상 판정 수정. 한 번의 피해가 maxHP 절반 이상일 때. CON 판정 기절, maxHP 이상 즉사 추가 |
-| 4-6 | `combat.js` | `Math.random()` 직접 호출 제거. `dice.js` 경유 |
+| 4-6 | `combat.js` | `Math.random()` 직접 호출 4건 제거. `performAttack`(21~24행)은 `rollBonus`/`rollPenalty`/`rollD100`을 삼항식으로 재구현하고 있다 — `dice.js` 함수로 교체. `performDodge`(54행)는 `rollD100()` |
 
 **보류:** 다수 적(`count`) 처리는 4단계 완료 후 별도 판단.
 1대1이 안정되기 전에 손대지 않는다.
@@ -148,8 +148,28 @@
 | 5-4 | `move_to`가 `connections` 검증 없이 처리됨 | 인접 장소인지 확인 |
 | 5-5 | `findUnrevealedClue`가 같은 기술의 첫 단서를 집음 — 종을 조사했는데 바닥 문양이 나옴 | 인터랙션 대상 또는 행동 문맥과 매칭 |
 | 5-6 | 엔딩의 `injury`, `san_final`, `mythos_gain` 미처리 | 구조화된 필드로 받아 적용 |
-| 5-7 | `sanity.js`의 `rollTempInsanityEffect`가 `Math.random()` 직접 호출 | `dice.js` 경유 |
+| 5-7 | `sanity.js`의 `rollTempInsanityEffect`(58행)와 `rollIndefInsanityEffect`(73행)가 `Math.random()` 직접 호출 | 둘 다 `dice.js` 경유. 목록 길이가 6이라 `roll(6) - 1`로 인덱스를 뽑을지, `dice.js`에 배열 추출 헬퍼를 둘지 판단 |
 | 5-8 | `Game.jsx:481`이 일시적 광기 지속 턴(1d10)을 `Math.random()`으로 직접 굴림. `game-rules.md`에 명시된 룰 수치가 UI 레이어에서 계산되고 있다 | `dice.js`의 `roll(10)` 경유. 지속 턴 계산을 `sanity.js`로 옮길지는 5-7과 함께 판단 |
+| 5-9 | `dice.test.js`의 `Math.random` 감시 테스트가 `dice.js` 함수만 덮는다. 4-6·5-7·5-8을 고쳐도 재발을 막을 장치가 없다 | 4-6·5-7·5-8 완료 후, `combat.js`·`sanity.js`·광기 지속 턴까지 포함하도록 감시 테스트 확장 |
+
+**`Math.random()` 직접 호출 전수 (2026-10-07 조사)**
+
+`CLAUDE.md`: "주사위는 `dice.js`를 경유한다. `Math.random()` 직접 호출 금지."
+현재 위반은 4곳 7건이고, 담당 항목이 흩어져 있어 여기에 모아둔다.
+
+| 위치 | 건수 | 담당 |
+|---|---|---|
+| `combat.js` `performAttack` 21~24행 | 3 | 4-6 |
+| `combat.js` `performDodge` 54행 | 1 | 4-6 |
+| `sanity.js` `rollTempInsanityEffect` 58행 | 1 | 5-7 |
+| `sanity.js` `rollIndefInsanityEffect` 73행 | 1 | 5-7 |
+| `Game.jsx` 481행 | 1 | 5-8 |
+
+`engine/*.test.js`의 `setRng(Math.random)`과 `dice.js`의 `let rng = Math.random`은
+주입 지점이거나 복원 코드이므로 위반이 아니다.
+
+넷을 다 고치기 전까지 `combat.js`와 `sanity.js`의 광기 효과 추출은 테스트로 고정할 수 없다.
+2단계에서 이 두 파일의 테스트를 쓰지 않은 이유이기도 하다.
 
 ---
 
